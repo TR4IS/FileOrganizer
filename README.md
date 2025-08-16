@@ -51,7 +51,7 @@ The script:
 
   ~~Build a simple GUI~~ - Done✔
 
-  Schedule as a daily background task  - working on it ⏳
+  listening for events (toggle) - working on it ⏳
 
   Add config file support (custom categories) - 
 
