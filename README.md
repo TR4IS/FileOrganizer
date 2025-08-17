@@ -42,7 +42,7 @@ The script:
 
 ## ▶️ How to Run
 
-1. Download the exe file and run it!
+1. Download the latest exe from [here](https://github.com/tr4is/windows-downloads-file-organizer/releases/) and run it!
 
 ---
 
