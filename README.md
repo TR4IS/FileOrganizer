@@ -72,9 +72,9 @@ The script:
 
 ## 📝 To-Do / Ideas
 
-  ~~Build a simple GUI~~ - Done✔
+  ~~Build a simple GUI~~ - Done✔.
 
-  listening for events (toggle) - working on it ⏳
+  ~~listening for events (toggle)~~ - Done✔.
 
-  Add config file support (custom categories) - 
+  Add config file support (custom categories) - working on it ⏳
 
