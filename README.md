@@ -17,6 +17,7 @@ A simple and effective Python script that automatically organizes your Windows *
 - Safe, simple, readable code
 
 ---
+
 ## 📉 Performance
 
 - My Specs:
@@ -28,6 +29,9 @@ A simple and effective Python script that automatically organizes your Windows *
   - RAM Usage => 20.1 MB
   - Disk Usage (Idle) => 0 MB/S
   - Disk Usage (Working) => it depends on the content but usually not above 0.90 MB/s
+ 
+The data presented are based on my specific use case and may vary from your own experience
+
 ---
 
 ## 📂 How It Works
