@@ -1,32 +1,37 @@
-import customtkinter as t
 import os
 import shutil
 import threading
-import time
+import configparser
+import customtkinter as t
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from PIL import Image
+import pystray
 
 # ==============================
-# 📁 Windows File Organizer
-# ------------------------------
-# Organizes your Downloads folder into subfolders based on file types:
-# zip, image, pdf, exe, sound, video, OS images (ISO), and random.
-# made by TR4IS on Github <3
+# 📁 Setup
 # ==============================
 
-
-# --- Setup ---
 t.set_appearance_mode("dark")
-# t.set_default_color_theme("yellow")
 
+USER = os.getlogin()
+DOWNLOAD_PATH = f"C:/Users/{USER}/Downloads"
+DOCS_PATH = f"C:/Users/{USER}/Documents"
+CONFIG_PATH = os.path.join(DOCS_PATH, "FileOrganizer")
+CONFIG_FILE = os.path.join(CONFIG_PATH, "config.ini")
 
-# Get the user Downloads Folder
-user = os.getlogin()
-download_path = f"C:/Users/{user}/Downloads"
+os.makedirs(CONFIG_PATH, exist_ok=True)
 
+# Config
+config = configparser.ConfigParser()
+if not os.path.exists(CONFIG_FILE):
+    config['App'] = {'run_in_back': 'false'}
+    with open(CONFIG_FILE, 'w') as f:
+        config.write(f)
+config.read(CONFIG_FILE)
 
-#File types
-file_types = {
+# File types
+FILE_TYPES = {
     'zip': ['.zip', '.rar'],
     'image': ['.png', '.jpg', '.gif', '.jpeg', '.psd'],
     'pdf': ['.pdf'],
@@ -34,172 +39,196 @@ file_types = {
     'sound': ['.mp3', '.wav', '.ogg', '.flac', '.m4a'],
     'video': ['.mp4', '.mkv', '.avi', '.mov', '.wmv'],
     'os': ['.iso', '.img'],
-    'random': []  # Everything else goes here
+    'random': []
 }
+TEMP_EXTENSIONS = ['.crdownload', '.part', '.tmp']
 
+# ==============================
+# 🖥️ Tkinter UI
+# ==============================
 
-# --- Tkinter UI ---
 root = t.CTk()
 root.geometry("250x400")
-root.minsize(250, 400)
 root.title("File Organizer")
-# root.resizable(False, False)
-# root.iconbitmap("FO.ico")
 
-# TextBox for the logs
-textbox = t.CTkTextbox(root, wrap="word")
-textbox.configure(state="disabled")
+textbox = t.CTkTextbox(root, wrap="word", state="disabled")
+textbox.pack(padx=10, pady=10, expand=True, fill="both")
 
-# --- Organize function ---
-# this the main function for organizing the files 
+# ==============================
+# 📂 Organizer
+# ==============================
 
-# For running the organzie function only once
 organize_running = False
+organize_timer = None
+currently_moving = set()
+observer = None
+run_background = config.getboolean('App', 'run_in_back')
+
+
+def log(msg):
+    textbox.configure(state="normal")
+    textbox.insert("end", msg + "\n")
+    textbox.configure(state="disabled")
+    textbox.see("end")
+
 
 def organize():
-
     global organize_running
+    if organize_running:
+        return
     organize_running = True
 
-
-    # Clear the text box with every run of the function
+    # Clear log
     textbox.configure(state="normal")
-    textbox.delete("0.0", "end")  # Clear textbox
+    textbox.delete("0.0", "end")
     textbox.configure(state="disabled")
 
-    # Create folders if they don't exist
-    for folder in file_types.keys():
-        folder_path = os.path.join(download_path, folder)
+    # Ensure folders exist
+    for folder in FILE_TYPES.keys():
+        folder_path = os.path.join(DOWNLOAD_PATH, folder)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-            textbox.configure(state="normal")
-            textbox.insert("end", f"[+] Created folder: {folder_path}\n")
-            textbox.configure(state="disabled")
+            log(f"[+] Created folder: {folder_path}")
 
-    # List all items in Downloads
-    items = os.listdir(download_path)
-    sort_folders = set(file_types.keys())
+    # Process items
+    for item in os.listdir(DOWNLOAD_PATH):
+        path = os.path.join(DOWNLOAD_PATH, item)
 
-    for item in items:
-        item_path = os.path.join(download_path, item)
-
-        # Skip sorting folders
-        if item.lower() in sort_folders:
+        if item.lower() in FILE_TYPES:
             continue
 
-        # Get file extension
-        _, ext = os.path.splitext(item.lower())
-        moved = False
+        if os.path.isdir(path):
+            dest = os.path.join(DOWNLOAD_PATH, 'random', item)
+            currently_moving.add(path)
+            shutil.move(path, dest)
+            currently_moving.discard(path)
+            log(f"[→] Moved folder: {item} → random/")
+            continue
 
-        # Check each category
-        for folder, extensions in file_types.items():
-            
-            if ext in extensions:
-                dest_path = os.path.join(download_path, folder, item)
-                shutil.move(item_path, dest_path)
-                textbox.configure(state="normal")
-                textbox.insert("end", f"[→] Moved: {item} → {folder}/\n")
-                textbox.configure(state="disabled")
+        _, ext = os.path.splitext(item.lower())
+        if ext in TEMP_EXTENSIONS:
+            continue
+
+        moved = False
+        for folder, exts in FILE_TYPES.items():
+            if ext in exts:
+                dest = os.path.join(DOWNLOAD_PATH, folder, item)
+                currently_moving.add(path)
+                shutil.move(path, dest)
+                currently_moving.discard(path)
+                log(f"[→] {item} → {folder}/")
                 moved = True
                 break
 
-        
-        
+        if not moved:
+            dest = os.path.join(DOWNLOAD_PATH, 'random', item)
+            currently_moving.add(path)
+            shutil.move(path, dest)
+            currently_moving.discard(path)
+            log(f"[→] {item} → random/")
 
-        # Move unmatched files to 'random'
-        # Added a condition to avoid moving temporary files (e.g., files still downloading).
-        # However, if a temporary file has a name that never changes, it will stay in the
-        # Downloads folder forever—until its name changes or you move it manually.
-        temp=['.crdownload', '.part', '.tmp']
-        if not moved and ext not in temp:
-            dest_path = os.path.join(download_path, 'random', item)
-            shutil.move(item_path, dest_path)
-            textbox.configure(state="normal")
-            textbox.insert("end", f"[→] Moved: {item} → random/\n")
-            textbox.configure(state="disabled")
-
-    # Done message
-    textbox.configure(state="normal")
-    textbox.insert("end", "\n✅ Done organizing your Downloads folder!")
-    textbox.configure(state="disabled")
-
-    # To Run organize Function once
+    log("✅ Done organizing your Downloads folder!")
     organize_running = False
 
-organize_timer = None
+# ==============================
+# 👀 Watchdog
+# ==============================
 
 class DownloadsHandler(FileSystemEventHandler):
-    def on_any_event(self,event):
+    def on_any_event(self, event):
         global organize_timer
         if event.is_directory:
             return
-        
+        if event.src_path in currently_moving:
+            return
         if organize_timer and organize_timer.is_alive():
             organize_timer.cancel()
-
-        if organize_running:
-            return
-        
-        organize_timer = threading.Timer(2.0,organize)
+        organize_timer = threading.Timer(2.0, organize)
         organize_timer.start()
 
+# ==============================
+# 🎨 Buttons
+# ==============================
 
-def button_event():
+def button_organize():
     organize()
 
-run = False
-observer = None
 
-
-def button_event2():
-    global run
-    global observer
-    if run:
-        button_run_back.configure(text="Run in Background")
-        observer.stop()
-        observer.join()
-        run = False
+def button_toggle_background():
+    global run_background, observer
+    if run_background:
+        if observer:
+            observer.stop()
+            observer.join()
+            observer = None
+        button_bg.configure(text="Run in Background")
+        run_background = False
     else:
-        button_run_back.configure(text="Don't Run in Back")
         observer = Observer()
-        handler = DownloadsHandler()
-        observer.schedule(handler,download_path,recursive=False)
+        observer.schedule(DownloadsHandler(), DOWNLOAD_PATH, recursive=False)
         observer.start()
-        run = True
-    #textbox.configure(state="normal")
-    #textbox.insert("end", f"{run}")
-    #textbox.configure(state="disabled")
+        button_bg.configure(text="Don't Run in Background")
+        run_background = True
 
+    config['App']['run_in_back'] = 'true' if run_background else 'false'
+    with open(CONFIG_FILE, 'w') as f:
+        config.write(f)
 
-# --- UI Elements ---
-label = t.CTkLabel(root, text=f"Do you want to organize the files in \n{download_path} ?")
-button = t.CTkButton(
-    root,
-    text="Organize",
-    fg_color="#FFD700",
-    hover_color="#b29600",
-    text_color="#000",
-    border_color="#000",
-    command=button_event
-)
-button_run_back = t.CTkButton(
-    root,
-    text="Run in Background",
-    fg_color="#FFD700",
-    hover_color="#b29600",
-    text_color="#000",
-    border_color="#000",
-    command=button_event2
-)
+# ==============================
+# 🪟 System Tray
+# ==============================
 
+def show_window(icon, item):
+    icon.stop()
+    root.after(0, root.deiconify)
 
+def quit_app(icon, item):
+    icon.stop()
+    try:
+        if organize_timer:
+            organize_timer.cancel()
+    except:
+        pass
+    root.quit()
 
-# --- Layout ---
-label.pack(pady=(40, 0))
-textbox.pack(padx=10, pady=17, side="bottom", expand=True, fill='both')
-button.pack(pady=(15, 0),side="top",expand=False)
-button_run_back.pack(pady=(15, 0),side="top",expand=False)
+def minimize_to_tray():
+    root.withdraw()
+    image = Image.open("FileOrganizer.ico")  # Your icon file
+    menu = pystray.Menu(
+        pystray.MenuItem('Show', show_window),
+        pystray.MenuItem('Quit', quit_app)
+    )
+    icon = pystray.Icon("FileOrganizer", image, "File Organizer", menu)
+    threading.Thread(target=icon.run, daemon=True).start()
 
-# --- Main loop ---
+def on_closing():
+    minimize_to_tray()
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# ==============================
+# 🪛 UI Elements
+# ==============================
+
+label = t.CTkLabel(root, text=f"Do you want to organize the files in \n{DOWNLOAD_PATH}?")
+button_org = t.CTkButton(root, text="Organize", fg_color="#FFD700", text_color="#000", command=button_organize)
+button_bg = t.CTkButton(root,
+                        text="Don't Run in Background" if run_background else "Run in Background",
+                        fg_color="#FFD700", text_color="#000",
+                        command=button_toggle_background)
+
+label.pack(pady=(40,0))
+button_org.pack(pady=10)
+button_bg.pack(pady=10)
+textbox.pack(padx=10, pady=10, expand=True, fill="both")
+
+# ==============================
+# 🚀 Run
+# ==============================
+
 if __name__ == "__main__":
+    if run_background:
+        observer = Observer()
+        observer.schedule(DownloadsHandler(), DOWNLOAD_PATH, recursive=False)
+        observer.start()
     root.mainloop()
