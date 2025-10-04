@@ -1,3 +1,6 @@
+![icon](docs/FileOrganizer.ico)
+
+
 # 🧹 Windows File Organizer (Python)
 
 A simple and effective app that automatically organizes your Windows **Downloads** folder into categorized subfolders like `zip`, `image`, `video`, `pdf`, `sound`, `os`, and `random`.
@@ -80,4 +83,5 @@ The script:
 - ~~Listening for events (toggle)~~ ✔️  
 - Add config file support (custom categories) ⏳ (in progress)  
 - Minimize to system tray 🖥️
+
 
