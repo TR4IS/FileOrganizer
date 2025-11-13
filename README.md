@@ -29,7 +29,7 @@ A simple and effective app that automatically organizes your Windows **Downloads
   - Nivida RTX 4060ti
     
 - Script Performance:
-  - RAM Usage => 20.1 MB
+  - RAM Usage => 32.1 MB
   - Disk Usage (Idle) => 0 MB/S
   - Disk Usage (Working) => it depends on the content but usually not above 0.90 MB/s
  
@@ -82,7 +82,7 @@ The script:
 - ~~Build a simple GUI~~ ✔️  
 - ~~Listening for events (toggle)~~ ✔️  
 - Add config file support (custom categories) ⏳ (in progress)  
-- Minimize to system tray 🖥️
+- ~~Minimize to system tray 🖥️~~ ✔️
 
 
 
