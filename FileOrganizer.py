@@ -14,13 +14,15 @@ import ctypes
 from pathlib import Path
 import sys
 
+# TO-DO = while the file convert from crdownload to the actuall extention faster than the script could handle so it won't actually move it
+
 
 # ==============================
 # 📁 Windows File Organizer
 # ------------------------------
 # Organizes your Downloads folder into subfolders based on default file types:
 # zip, image, pdf, exe, sound, video, OS images (ISO), and random. or your custom layout!.
-# made with <3 by TR4IS on Github 
+# made with <3 by TR4IS on Github
 # ==============================
 
 # ==============================
@@ -101,7 +103,7 @@ if not os.path.exists(ICON_FILE):
             f.write(r.content)
     except Exception as e:
         log_txt(f"Error: Couldn't Find Icon File : {e}")
-        
+
 if not os.path.exists(FONT):
     try:
         r = requests.get(FONT_URL,timeout=10)
@@ -109,7 +111,7 @@ if not os.path.exists(FONT):
             f.write(r.content)
     except Exception as e:
         log_txt(f"Error: Couldn't Find Font File : {e}")
-        
+
 
 
 
@@ -146,7 +148,7 @@ try:
     font.nametofont("TkFixedFont").configure(family="JetBrains Mono", size=12)
 except Exception as e:
     log_txt(f"Error: Couldn't Load Font File : {e}")
-    
+
 
 
 
@@ -167,7 +169,7 @@ currently_moving = set()
 observer = None
 
 def ensure_valid_config():
-    """Verify config.ini is readable and contains required fields. 
+    """Verify config.ini is readable and contains required fields.
     If corrupted or missing keys, recreate it with defaults."""
     default_config = {
         'App': {
@@ -197,7 +199,7 @@ def ensure_valid_config():
         _write_default_config(default_config)
 
 def _write_default_config(default_config):
-    config.clear()  
+    config.clear()
     config.update(default_config)
     with open(CONFIG_FILE, 'w') as f:
         config.write(f)
@@ -213,21 +215,21 @@ def log(msg):
         f.write(msg + "\n")
     def _ui_log():
         try:
-            if root.state() != "withdrawn":        
+            if root.state() != "withdrawn":
                 textbox.configure(state="normal")
                 textbox.insert("end", msg + "\n")
                 textbox.configure(state="disabled")
                 textbox.see("end")
         except Exception as e:
             log_txt(f"Error: Error with the window tray : {e}")
-            
+
     try:
         root.after(0,_ui_log)
     except Exception as e:
         log_txt(f"Error: Error with logs : {e}")
-        
 
-def reload_logs(max_lines=500):
+
+def reload_logs(max_lines=50):
     if os.path.exists(LOG_FILE):
         with open(LOG_FILE, 'r', encoding="utf8") as f:
             lines = f.readlines()
@@ -322,7 +324,7 @@ def organize():
                     shutil.move(path, dest)
                 except Exception as e:
                     log_txt(f"Error: Failed to move : {e}")
-                    
+
                 safe_discard(os.path.abspath(dest))
                 log(f"[→] {item} → {folder}/")
                 moved = True
@@ -335,7 +337,7 @@ def organize():
                 shutil.move(path, dest)
             except Exception as e:
                 log_txt(f"Error: Failed to move : {e}")
-                 
+
             safe_discard(os.path.abspath(dest))
             log(f"[→] {item} → random/")
 
@@ -347,29 +349,51 @@ def organize():
 # ==============================
 
 class DownloadsHandler(FileSystemEventHandler):
-    def on_any_event(self, event):
-        global organize_timer
-        # Ignore events triggered while organizer is running
+    DEBOUNCE_SECONDS = 2.0
+
+    def on_created(self, event):
+        if event.is_directory:
+            return
+        self._handle_path(event.src_path)
+
+    def on_modified(self, event):
+        if event.is_directory:
+            return
+        self._handle_path(event.src_path)
+
+    def on_moved(self, event):
+        if event.is_directory:
+            return
+        # IMPORTANT FIX:
+        # When a file finishes downloading, Chrome RENAMES it
+        # from .crdownload -> final extension
+        self._handle_path(event.dest_path)
+
+    def _handle_path(self, path):
+        global organize_timer, organize_running
+
+        # Ignore while organizer is running
         if organize_running:
             return
 
-        if event.is_directory:
-            return
+        _, ext = os.path.splitext(path.lower())
 
         # Ignore temp/incomplete files
-        _, ext = os.path.splitext(event.src_path.lower())
         if ext in TEMP_EXTENSIONS:
             return
 
-        # Ignore files being moved by organizer
-        if os.path.abspath(event.src_path) in currently_moving:
+        # Ignore files being moved by organizer itself
+        if os.path.abspath(path) in currently_moving:
             return
 
         # Debounce multiple events
-        DEBOUNCE_SECONDS = 2.0
         if organize_timer and organize_timer.is_alive():
             organize_timer.cancel()
-        organize_timer = threading.Timer(DEBOUNCE_SECONDS, organize)
+
+        organize_timer = threading.Timer(
+            self.DEBOUNCE_SECONDS,
+            organize
+        )
         organize_timer.start()
 
 # ==============================
@@ -423,7 +447,7 @@ def quit_app(icon, item):
 
     except Exception as e:
         log_txt(f"Error: Error with system tray : {e}")
-        
+
     if observer:
         observer.stop()
         observer.join()
@@ -437,7 +461,7 @@ def minimize_to_tray():
         image = Image.open(ICON_FILE)  # Your icon file
     except Exception as e:
         log_txt(f"Error: Error Loading Tray Icon : {e}")
-        image = None   
+        image = None
     menu = pystray.Menu(
         pystray.MenuItem('Show', show_window),
         pystray.MenuItem('Quit', quit_app)
