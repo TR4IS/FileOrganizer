@@ -83,6 +83,6 @@ The script:
 - ~~Listening for events (toggle)~~ ✔️  
 - Add config file support (custom categories) ⏳ (in progress)  
 - ~~Minimize to system tray 🖥️~~ ✔️
-
+- Add a redo fucntion (Restores changes)
 
 
