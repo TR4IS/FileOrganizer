@@ -61,7 +61,7 @@ ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/File
 FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetBrainsMono-Regular.ttf"
 LOG_FILE = os.path.join(CONFIG_PATH, "log.txt")
 FONT = os.path.join(CONFIG_PATH,'JetBrainsMono-Regular.ttf')
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 
 
 os.makedirs(CONFIG_PATH, exist_ok=True)
