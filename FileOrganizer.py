@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 
 # TO-DO = while the file convert from crdownload to the actuall extention faster than the script could handle so it won't actually move it
-
+# TO-DO = add update checker
 
 # ==============================
 # 📁 Windows File Organizer
@@ -61,6 +61,7 @@ ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/File
 FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetBrainsMono-Regular.ttf"
 LOG_FILE = os.path.join(CONFIG_PATH, "log.txt")
 FONT = os.path.join(CONFIG_PATH,'JetBrainsMono-Regular.ttf')
+VERSION = "1.1.1"
 
 
 os.makedirs(CONFIG_PATH, exist_ok=True)
@@ -96,9 +97,12 @@ def log_txt(msg):
 # 📁 Download icon + font
 # ==============================
 
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+
 if not os.path.exists(ICON_FILE):
     try:
-        r = requests.get(ICON_URL,timeout=10)
+        r = requests.get(ICON_URL, headers=HEADERS, timeout=10)
+        r.raise_for_status()
         with open(ICON_FILE,'wb') as f:
             f.write(r.content)
     except Exception as e:
@@ -106,7 +110,8 @@ if not os.path.exists(ICON_FILE):
 
 if not os.path.exists(FONT):
     try:
-        r = requests.get(FONT_URL,timeout=10)
+        r = requests.get(FONT_URL, headers=HEADERS, timeout=10)
+        r.raise_for_status()
         with open(FONT,'wb') as f:
             f.write(r.content)
     except Exception as e:
@@ -155,7 +160,11 @@ except Exception as e:
 root.geometry("250x400+750+350")
 root.minsize(250,400)
 root.title("File Organizer")
-root.iconbitmap(f'{ICON_FILE}')
+if os.path.exists(ICON_FILE):
+    try:
+        root.iconbitmap(f'{ICON_FILE}')
+    except Exception as e:
+        log_txt(f"Error: Could not set window icon: {e}")
 
 textbox = t.CTkTextbox(root, wrap="word", state="disabled",font=('JetBrains Mono',13))
 
@@ -504,7 +513,11 @@ button_bg.pack(pady=10)
 
 if __name__ == "__main__":
     if run_background:
-        observer = Observer()
-        observer.schedule(DownloadsHandler(), DOWNLOAD_PATH, recursive=False)
-        observer.start()
+        try:
+            observer = Observer()
+            observer.schedule(DownloadsHandler(), DOWNLOAD_PATH, recursive=False)
+            observer.start()
+        except Exception as e:
+            log_txt(f"Error: Could not start observer on launch: {e}")
+            run_background = False
     root.mainloop()
