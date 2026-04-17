@@ -9,13 +9,12 @@ from PIL import Image
 import pystray
 import time
 import requests
-from tkinter import font
+from tkinter import font, messagebox
 import ctypes
 from pathlib import Path
 import sys
 
 # TO-DO = while the file convert from crdownload to the actuall extention faster than the script could handle so it won't actually move it
-# TO-DO = add update checker
 
 # ==============================
 # 📁 Windows File Organizer
@@ -24,6 +23,15 @@ import sys
 # zip, image, pdf, exe, sound, video, OS images (ISO), and random. or your custom layout!.
 # made with <3 by TR4IS on Github
 # ==============================
+
+# ==============================
+# 📁 Constants & Paths
+# ==============================
+
+VERSION = "1.1.2"
+UPDATE_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/version.json"
+ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/FileOrganizer.ico"
+FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetBrainsMono-Regular.ttf"
 
 # ==============================
 # 📁 Named Mutex
@@ -53,8 +61,8 @@ t.set_appearance_mode("dark")
 
 
 DOWNLOAD_PATH = str(Path.home()/"Downloads")
-DOCS_PATH = str(Path.home() / "Documents")
-CONFIG_PATH = os.path.join(DOCS_PATH, "FileOrganizer")
+LOCAL_APP_DATA = os.environ.get('LOCALAPPDATA', str(Path.home() / "AppData" / "Local"))
+CONFIG_PATH = os.path.join(LOCAL_APP_DATA, "FileOrganizer")
 ICON_FILE = os.path.join(CONFIG_PATH, "FileOrganizer.ico")
 CONFIG_FILE = os.path.join(CONFIG_PATH, "config.ini")
 ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/FileOrganizer.ico"
@@ -177,6 +185,39 @@ organize_timer = None
 currently_moving = set()
 observer = None
 
+def check_for_updates(manual=False):
+    """Check for updates from GitHub and prompt user if found."""
+    def _check():
+        try:
+            response = requests.get(UPDATE_URL, headers=HEADERS, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            remote_version = data.get("version")
+            download_url = data.get("url")
+
+            if remote_version and remote_version > VERSION:
+                if messagebox.askyesno("Update Available", f"A new version ({remote_version}) is available.\n\nWould you like to download and install it?"):
+                    log("Downloading update...")
+                    installer_path = os.path.join(CONFIG_PATH, "FileOrganizerSetup.exe")
+                    r = requests.get(download_url, headers=HEADERS, stream=True)
+                    with open(installer_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    
+                    log("Launching installer...")
+                    os.startfile(installer_path)
+                    root.after(0, root.destroy)
+                    os._exit(0)
+            elif manual:
+                messagebox.showinfo("Update Check", f"You are on the latest version ({VERSION}).")
+        except Exception as e:
+            log_txt(f"Update check failed: {e}")
+            if manual:
+                messagebox.showerror("Update Check", "Could not check for updates. Check your internet connection.")
+
+    threading.Thread(target=_check, daemon=True).start()
+
+
 def ensure_valid_config():
     """Verify config.ini is readable and contains required fields.
     If corrupted or missing keys, recreate it with defaults."""
@@ -285,11 +326,17 @@ def organize():
         return
     organize_running = True
 
-    if root.state() != "withdrawn":
-        # Clear log
-        textbox.configure(state="normal")
-        textbox.delete("0.0", "end")
-        textbox.configure(state="disabled")
+    def _clear_ui():
+        try:
+            if root.state() != "withdrawn":
+                # Clear log
+                textbox.configure(state="normal")
+                textbox.delete("0.0", "end")
+                textbox.configure(state="disabled")
+        except Exception as e:
+            log_txt(f"Error: Failed to clear textbox: {e}")
+
+    root.after(0, _clear_ui)
 
     # Ensure folders exist
     for folder in FILE_TYPES.keys():
@@ -410,20 +457,24 @@ class DownloadsHandler(FileSystemEventHandler):
 # ==============================
 
 def button_organize():
-    organize()
+    threading.Thread(target=organize, daemon=True).start()
 
 
 def button_toggle_background():
     global run_background, observer
     if run_background:
-        try:
-            if observer:
-                observer.stop()
-                observer.join()
-        except Exception as e:
-            log_txt(f"Error: Error stopping observer : {e}")
-        finally:
-            observer = None
+        def stop_observer():
+            global observer
+            try:
+                if observer:
+                    observer.stop()
+                    observer.join()
+            except Exception as e:
+                log_txt(f"Error: Error stopping observer : {e}")
+            finally:
+                observer = None
+        
+        threading.Thread(target=stop_observer, daemon=True).start()
         button_bg.configure(text="Run in Background")
         run_background = False
     else:
@@ -473,6 +524,7 @@ def minimize_to_tray():
         image = None
     menu = pystray.Menu(
         pystray.MenuItem('Show', show_window),
+        pystray.MenuItem('Check for Updates', lambda: check_for_updates(manual=True)),
         pystray.MenuItem('Quit', quit_app)
     )
     icon = pystray.Icon("FileOrganizer", image, "File Organizer", menu)
@@ -501,17 +553,23 @@ button_bg = t.CTkButton(root,
                         hover_color="#00aeff",
                         command=button_toggle_background,
     font=("JetBrains Mono",14))
+button_upd = t.CTkButton(root, text="Check for Updates", fg_color="transparent", border_width=1, border_color="#FFD700", text_color="#FFD700", command=lambda: check_for_updates(manual=True), hover_color="#333",
+    font=("JetBrains Mono",12))
 
 textbox.pack(padx=10, pady=10, expand=True, fill="both")
 label.pack(pady=(0,0))
 button_org.pack(pady=(10,0))
-button_bg.pack(pady=10)
+button_bg.pack(pady=5)
+button_upd.pack(pady=(0,10))
 
 # ==============================
 # 🚀 Run
 # ==============================
 
 if __name__ == "__main__":
+    # Check for updates on startup
+    check_for_updates()
+    
     if run_background:
         try:
             observer = Observer()
