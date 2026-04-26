@@ -578,8 +578,4 @@ if __name__ == "__main__":
         except Exception as e:
             log_txt(f"Error: Could not start observer on launch: {e}")
             run_background = False
-<<<<<<< HEAD
     root.mainloop()
-=======
-    root.mainloop()
->>>>>>> a90a6b254e92857225bd55b6bd1c06d5b1531790
