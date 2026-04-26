@@ -1,0 +1,28 @@
+# Virtual environment (Already in your file, keep it)
+venv/
+ENV/
+env/
+
+# Python cache (Already in your file, keep it)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / Build folders (New based on your sidebar)
+build/
+dist/
+local_bin/
+
+# PyInstaller spec file (New based on your sidebar)
+*.spec
+
+# Environment variables (Already in your file, keep it)
+.env
+
+# VS Code settings (Already in your file, keep it)
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
