@@ -26,3 +26,4 @@ local_bin/
 # OS generated files
 .DS_Store
 Thumbs.db
+Output/
