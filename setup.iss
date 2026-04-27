@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "File Organizer"
-#define MyAppVersion "1.1.2"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "TR4IS"
 #define MyAppURL "https://github.com/tr4is/fileorganizer"
 #define MyAppExeName "FileOrganizer.exe"
@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputBaseFilename=FileOrganizerSetup
-SetupIconFile=docs\FileOrganizer.ico
+SetupIconFile=FileOrganizer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

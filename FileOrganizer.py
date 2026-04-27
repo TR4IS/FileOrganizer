@@ -3,6 +3,7 @@ import shutil
 import threading
 import configparser
 import customtkinter as t
+from customtkinter import filedialog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from PIL import Image
@@ -14,21 +15,13 @@ import ctypes
 from pathlib import Path
 import sys
 
-# TO-DO = while the file convert from crdownload to the actuall extention faster than the script could handle so it won't actually move it
+# followrs want 1 - set gifs,ttf fonts folder 2 -
 
 # ==============================
 # 📁 Windows File Organizer
-# ------------------------------
-# Organizes your Downloads folder into subfolders based on default file types:
-# zip, image, pdf, exe, sound, video, OS images (ISO), and random. or your custom layout!.
-# made with <3 by TR4IS on Github
 # ==============================
 
-# ==============================
-# 📁 Constants & Paths
-# ==============================
-
-VERSION = "1.1.2"
+VERSION = "1.2.0"
 UPDATE_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/version.json"
 ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/FileOrganizer.ico"
 FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetBrainsMono-Regular.ttf"
@@ -37,7 +30,7 @@ FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetB
 # 📁 Named Mutex
 # ==============================
 
-mutex_handle = None  # global handle to keep mutex alive
+mutex_handle = None 
 
 def prevent_multiple_instances():
     global mutex_handle
@@ -59,24 +52,15 @@ prevent_multiple_instances()
 
 t.set_appearance_mode("dark")
 
-
-DOWNLOAD_PATH = str(Path.home()/"Downloads")
 LOCAL_APP_DATA = os.environ.get('LOCALAPPDATA', str(Path.home() / "AppData" / "Local"))
 CONFIG_PATH = os.path.join(LOCAL_APP_DATA, "FileOrganizer")
 ICON_FILE = os.path.join(CONFIG_PATH, "FileOrganizer.ico")
 CONFIG_FILE = os.path.join(CONFIG_PATH, "config.ini")
-ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/FileOrganizer.ico"
-FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetBrainsMono-Regular.ttf"
 LOG_FILE = os.path.join(CONFIG_PATH, "log.txt")
 FONT = os.path.join(CONFIG_PATH,'JetBrainsMono-Regular.ttf')
-VERSION = "1.1.2"
-
 
 os.makedirs(CONFIG_PATH, exist_ok=True)
 
-
-
-# File types / note: the dot is important because splitext fuc split the name alson and the dot considerd with the extentuin
 FILE_TYPES = {
     'zip': ['.zip', '.rar'],
     'image': ['.png', '.jpg', '.gif', '.jpeg', '.psd'],
@@ -85,6 +69,8 @@ FILE_TYPES = {
     'sound': ['.mp3', '.wav', '.ogg', '.flac', '.m4a'],
     'video': ['.mp4', '.mkv', '.avi', '.mov', '.wmv'],
     'os': ['.iso', '.img'],
+    'gif':['.gif','.webp','.apng','avif'], 
+    'font':['.ttf','.otf','.ttc'],
     'random': []
 }
 TEMP_EXTENSIONS = [
@@ -100,12 +86,11 @@ def log_txt(msg):
     with open(LOG_FILE,'a',encoding="utf8") as f:
         f.write(msg + "\n")
 
-
 # ==============================
 # 📁 Download icon + font
 # ==============================
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 if not os.path.exists(ICON_FILE):
     try:
@@ -125,24 +110,14 @@ if not os.path.exists(FONT):
     except Exception as e:
         log_txt(f"Error: Couldn't Find Font File : {e}")
 
-
-
-
 # ==============================
 # 🖥️ Tkinter UI
 # ==============================
 
 root = t.CTk()
 
-# ------------------------------
-# 📁 Load fonts
-# ------------------------------
-
 def load_font_windows(font_path):
-    """Load a TTF font into Windows temporarily so Tkinter can use it."""
     FR_PRIVATE  = 0x10
-    FR_NOT_ENUM = 0x20
-
     if os.path.exists(font_path):
         try:
             ctypes.windll.gdi32.AddFontResourceExW(font_path, FR_PRIVATE, 0)
@@ -152,7 +127,6 @@ def load_font_windows(font_path):
             return False
     return False
 
-# Load the font file now
 load_font_windows(FONT)
 
 try:
@@ -162,11 +136,8 @@ try:
 except Exception as e:
     log_txt(f"Error: Couldn't Load Font File : {e}")
 
-
-
-
-root.geometry("250x400+750+350")
-root.minsize(250,400)
+root.geometry("300x480+750+350")
+root.minsize(300,480)
 root.title("File Organizer")
 if os.path.exists(ICON_FILE):
     try:
@@ -177,7 +148,56 @@ if os.path.exists(ICON_FILE):
 textbox = t.CTkTextbox(root, wrap="word", state="disabled",font=('JetBrains Mono',13))
 
 # ==============================
-# 📂 Organizer
+# 📂 Configuration & Path Management
+# ==============================
+
+DEFAULT_DOWNLOAD_PATH = str(Path.home()/"Downloads")
+
+def ensure_valid_config():
+    default_config = {
+        'App': {
+            'run_in_back': 'false',
+            'target_path': DEFAULT_DOWNLOAD_PATH
+        }
+    }
+
+    if not os.path.exists(CONFIG_FILE):
+        log_txt("Config missing. Creating new config.ini...")
+        _write_default_config(default_config)
+        return
+
+    try:
+        config.read(CONFIG_FILE)
+        if 'App' not in config or 'run_in_back' not in config['App'] or 'target_path' not in config['App']:
+            raise ValueError("Missing required config fields")
+
+        if config['App']['run_in_back'].lower() not in ['true', 'false']:
+            raise ValueError("Invalid boolean value in config")
+        
+        if not os.path.exists(config['App']['target_path']):
+            log_txt("Saved target path no longer exists. Reverting to default.")
+            config['App']['target_path'] = DEFAULT_DOWNLOAD_PATH
+            with open(CONFIG_FILE, 'w') as f:
+                config.write(f)
+
+    except Exception as e:
+        log_txt(f"Config corrupted: {e}. Recreating config.ini...")
+        _write_default_config(default_config)
+
+def _write_default_config(default_config):
+    config.clear()
+    config.update(default_config)
+    with open(CONFIG_FILE, 'w') as f:
+        config.write(f)
+
+config = configparser.ConfigParser()
+ensure_valid_config()
+
+run_background = config.getboolean('App', 'run_in_back')
+TARGET_PATH = config.get('App', 'target_path')
+
+# ==============================
+# 📂 Organizer Core
 # ==============================
 
 organize_running = False
@@ -186,7 +206,6 @@ currently_moving = set()
 observer = None
 
 def check_for_updates(manual=False):
-    """Check for updates from GitHub and prompt user if found."""
     def _check():
         try:
             response = requests.get(UPDATE_URL, headers=HEADERS, timeout=10)
@@ -217,49 +236,6 @@ def check_for_updates(manual=False):
 
     threading.Thread(target=_check, daemon=True).start()
 
-
-def ensure_valid_config():
-    """Verify config.ini is readable and contains required fields.
-    If corrupted or missing keys, recreate it with defaults."""
-    default_config = {
-        'App': {
-            'run_in_back': 'false'
-        }
-    }
-
-    # If file doesn't exist → create fresh one
-    if not os.path.exists(CONFIG_FILE):
-        log_txt("Config missing. Creating new config.ini...")
-        _write_default_config(default_config)
-        return
-
-    try:
-        config.read(CONFIG_FILE)
-
-        # Check required section and keys
-        if 'App' not in config or 'run_in_back' not in config['App']:
-            raise ValueError("Missing required config fields")
-
-        # Validate the value itself
-        if config['App']['run_in_back'].lower() not in ['true', 'false']:
-            raise ValueError("Invalid boolean value in config")
-
-    except Exception as e:
-        log_txt(f"Config corrupted: {e}. Recreating config.ini...")
-        _write_default_config(default_config)
-
-def _write_default_config(default_config):
-    config.clear()
-    config.update(default_config)
-    with open(CONFIG_FILE, 'w') as f:
-        config.write(f)
-
-# Config
-config = configparser.ConfigParser()
-ensure_valid_config()
-run_background = config.getboolean('App', 'run_in_back')
-
-
 def log(msg):
     with open(LOG_FILE,'a',encoding="utf8") as f:
         f.write(msg + "\n")
@@ -272,40 +248,30 @@ def log(msg):
                 textbox.see("end")
         except Exception as e:
             log_txt(f"Error: Error with the window tray : {e}")
-
     try:
         root.after(0,_ui_log)
     except Exception as e:
         log_txt(f"Error: Error with logs : {e}")
 
-
-def reload_logs(max_lines=50):
+def reload_logs(max_lines=0):
     if os.path.exists(LOG_FILE):
         with open(LOG_FILE, 'r', encoding="utf8") as f:
             lines = f.readlines()
-
-        # Only keep the last 500 lines
         lines = lines[-max_lines:]
-
         textbox.configure(state="normal")
         textbox.delete("0.0", "end")
         textbox.insert("end", "".join(lines))
         textbox.configure(state="disabled")
-
-        # Auto-scroll to bottom
         textbox.see("end")
 
 def safe_discard(path):
-    """Remove a path from currently_moving after a short delay."""
     def _remove():
         currently_moving.discard(os.path.abspath(path))
     threading.Timer(1.0, _remove).start()
 
-
 def wait_for_complete(file_path, timeout=30):
-    """Wait until file is no longer growing in size (download finished)."""
     last_size = -1
-    for _ in range(timeout * 2):  # check for up to timeout seconds
+    for _ in range(timeout * 2):
         try:
             size = os.path.getsize(file_path)
         except FileNotFoundError:
@@ -319,9 +285,8 @@ def wait_for_complete(file_path, timeout=30):
         time.sleep(0.5)
     return False
 
-
 def organize():
-    global organize_running
+    global organize_running, TARGET_PATH
     if organize_running:
         return
     organize_running = True
@@ -329,7 +294,6 @@ def organize():
     def _clear_ui():
         try:
             if root.state() != "withdrawn":
-                # Clear log
                 textbox.configure(state="normal")
                 textbox.delete("0.0", "end")
                 textbox.configure(state="disabled")
@@ -340,27 +304,39 @@ def organize():
 
     # Ensure folders exist
     for folder in FILE_TYPES.keys():
-        folder_path = os.path.join(DOWNLOAD_PATH, folder)
+        folder_path = os.path.join(TARGET_PATH, folder)
         if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-            log(f"[+] Created folder: {folder_path}")
+            try:
+                os.makedirs(folder_path)
+                log(f"[+] Created folder: {folder_path}")
+            except Exception as e:
+                log_txt(f"Error creating folder {folder_path}: {e}")
+                organize_running = False
+                return
 
     # Process items
-    for item in os.listdir(DOWNLOAD_PATH):
-        path = os.path.join(DOWNLOAD_PATH, item)
+    try:
+        items = os.listdir(TARGET_PATH)
+    except Exception as e:
+        log(f"[!] Error reading directory: {e}")
+        organize_running = False
+        return
+
+    for item in items:
+        path = os.path.join(TARGET_PATH, item)
 
         if item.lower() in FILE_TYPES:
             continue
 
         if os.path.isdir(path):
-            dest = os.path.join(DOWNLOAD_PATH, 'random', item)
+            dest = os.path.join(TARGET_PATH, 'random', item)
             currently_moving.add(os.path.abspath(dest))
             try:
                 shutil.move(path, dest)
+                log(f"[→] Moved folder: {item} → random/")
             except Exception as e:
-                log_txt(f"Error: Failed to move : {e}")
+                log_txt(f"Error: Failed to move folder {item}: {e}")
             safe_discard(os.path.abspath(dest))
-            log(f"[→] Moved folder: {item} → random/")
             continue
 
         _, ext = os.path.splitext(item.lower())
@@ -374,30 +350,28 @@ def organize():
         moved = False
         for folder, exts in FILE_TYPES.items():
             if ext in exts:
-                dest = os.path.join(DOWNLOAD_PATH, folder, item)
+                dest = os.path.join(TARGET_PATH, folder, item)
                 currently_moving.add(os.path.abspath(dest))
                 try:
                     shutil.move(path, dest)
+                    log(f"[→] {item} → {folder}/")
                 except Exception as e:
-                    log_txt(f"Error: Failed to move : {e}")
-
+                    log_txt(f"Error: Failed to move {item}: {e}")
                 safe_discard(os.path.abspath(dest))
-                log(f"[→] {item} → {folder}/")
                 moved = True
                 break
 
         if not moved:
-            dest = os.path.join(DOWNLOAD_PATH, 'random', item)
+            dest = os.path.join(TARGET_PATH, 'random', item)
             currently_moving.add(os.path.abspath(dest))
             try:
                 shutil.move(path, dest)
+                log(f"[→] {item} → random/")
             except Exception as e:
-                log_txt(f"Error: Failed to move : {e}")
-
+                log_txt(f"Error: Failed to move {item}: {e}")
             safe_discard(os.path.abspath(dest))
-            log(f"[→] {item} → random/")
 
-    log("✅ Done organizing your Downloads folder!")
+    log(f"✅ Done organizing {TARGET_PATH}!")
     organize_running = False
 
 # ==============================
@@ -408,60 +382,100 @@ class DownloadsHandler(FileSystemEventHandler):
     DEBOUNCE_SECONDS = 2.0
 
     def on_created(self, event):
-        if event.is_directory:
-            return
+        if event.is_directory: return
         self._handle_path(event.src_path)
 
     def on_modified(self, event):
-        if event.is_directory:
-            return
+        if event.is_directory: return
         self._handle_path(event.src_path)
 
     def on_moved(self, event):
-        if event.is_directory:
-            return
-        # IMPORTANT FIX:
-        # When a file finishes downloading, Chrome RENAMES it
-        # from .crdownload -> final extension
+        if event.is_directory: return
         self._handle_path(event.dest_path)
 
     def _handle_path(self, path):
         global organize_timer, organize_running
 
-        # Ignore while organizer is running
         if organize_running:
             return
 
         _, ext = os.path.splitext(path.lower())
 
-        # Ignore temp/incomplete files
         if ext in TEMP_EXTENSIONS:
             return
 
-        # Ignore files being moved by organizer itself
         if os.path.abspath(path) in currently_moving:
             return
 
-        # Debounce multiple events
         if organize_timer and organize_timer.is_alive():
             organize_timer.cancel()
 
-        organize_timer = threading.Timer(
-            self.DEBOUNCE_SECONDS,
-            organize
-        )
+        organize_timer = threading.Timer(self.DEBOUNCE_SECONDS, organize)
         organize_timer.start()
 
 # ==============================
-# 🎨 Buttons
+# 🎨 Buttons & Actions
 # ==============================
 
 def button_organize():
     threading.Thread(target=organize, daemon=True).start()
 
+def button_change_folder():
+    global TARGET_PATH, observer, organize_running
+
+    # Use Case 1 Guard: Prevent changing while currently moving files
+    if organize_running:
+        messagebox.showwarning("Busy", "Organization is currently in progress. Please wait until it finishes before changing the target folder.")
+        return
+
+    new_folder = filedialog.askdirectory(title="Select Folder to Organize", initialdir=TARGET_PATH)
+    
+    # Handle user cancellation
+    if not new_folder:
+        return
+
+    # Use Case 2 Guard: Check for Read/Write Permissions
+    if not os.access(new_folder, os.W_OK) or not os.access(new_folder, os.R_OK):
+        messagebox.showerror("Permission Error", f"Cannot organize '{new_folder}'. The program requires read and write permissions for the selected directory.")
+        return
+
+    # Avoid redundant operations if the path is identical
+    new_folder = os.path.normpath(new_folder)
+    if new_folder == TARGET_PATH:
+        return
+
+    TARGET_PATH = new_folder
+
+    # Save to config
+    config['App']['target_path'] = TARGET_PATH
+    with open(CONFIG_FILE, 'w') as f:
+        config.write(f)
+
+    # Update UI Label
+    formatted_path = TARGET_PATH if len(TARGET_PATH) < 30 else "..." + TARGET_PATH[-27:]
+    label.configure(text=f"Organize files in \n{formatted_path}")
+
+    # Use Case 3 Guard: Safely transition the Watchdog Observer to the new directory
+    if run_background:
+        def restart_observer():
+            global observer
+            if observer:
+                observer.stop()
+                observer.join()
+            
+            try:
+                observer = Observer()
+                observer.schedule(DownloadsHandler(), TARGET_PATH, recursive=False)
+                observer.start()
+                log(f"[*] Background tracking moved to {TARGET_PATH}")
+            except Exception as e:
+                log_txt(f"Error restarting observer: {e}")
+                messagebox.showerror("Observer Error", "Could not start background tracking on the new folder.")
+        
+        threading.Thread(target=restart_observer, daemon=True).start()
 
 def button_toggle_background():
-    global run_background, observer
+    global run_background, observer, TARGET_PATH
     if run_background:
         def stop_observer():
             global observer
@@ -477,12 +491,19 @@ def button_toggle_background():
         threading.Thread(target=stop_observer, daemon=True).start()
         button_bg.configure(text="Run in Background")
         run_background = False
+        log("[*] Background tracking stopped.")
     else:
-        observer = Observer()
-        observer.schedule(DownloadsHandler(), DOWNLOAD_PATH, recursive=False)
-        observer.start()
-        button_bg.configure(text="Don't Run in Background")
-        run_background = True
+        try:
+            observer = Observer()
+            observer.schedule(DownloadsHandler(), TARGET_PATH, recursive=False)
+            observer.start()
+            button_bg.configure(text="Don't Run in Background")
+            run_background = True
+            log("[*] Background tracking started.")
+        except Exception as e:
+            log_txt(f"Error starting observer: {e}")
+            messagebox.showerror("Error", "Could not start tracking. Check permissions.")
+            return
 
     config['App']['run_in_back'] = 'true' if run_background else 'false'
     with open(CONFIG_FILE, 'w') as f:
@@ -504,7 +525,6 @@ def quit_app(icon, item):
     try:
         if organize_timer:
             organize_timer.cancel()
-
     except Exception as e:
         log_txt(f"Error: Error with system tray : {e}")
 
@@ -518,7 +538,7 @@ def quit_app(icon, item):
 def minimize_to_tray():
     root.withdraw()
     try:
-        image = Image.open(ICON_FILE)  # Your icon file
+        image = Image.open(ICON_FILE)
     except Exception as e:
         log_txt(f"Error: Error Loading Tray Icon : {e}")
         image = None
@@ -544,7 +564,11 @@ root.protocol("WM_DELETE_WINDOW", on_closing)
 # 🪛 UI Elements
 # ==============================
 
-label = t.CTkLabel(root, text=f"Organize files in \n{DOWNLOAD_PATH} ?",font=("JetBrains Mono",14))
+display_path = TARGET_PATH if len(TARGET_PATH) < 30 else "..." + TARGET_PATH[-27:]
+label = t.CTkLabel(root, text=f"Organize files in \n{display_path}",font=("JetBrains Mono",14))
+
+button_change = t.CTkButton(root, text="Change Folder", fg_color="#333", text_color="#FFF", command=button_change_folder, hover_color="#555",
+    font=("JetBrains Mono",12))
 button_org = t.CTkButton(root, text="Organize", fg_color="#FFD700", text_color="#000", command=button_organize,hover_color="#00aeff",
     font=("JetBrains Mono",14))
 button_bg = t.CTkButton(root,
@@ -557,9 +581,10 @@ button_upd = t.CTkButton(root, text="Check for Updates", fg_color="transparent",
     font=("JetBrains Mono",12))
 
 textbox.pack(padx=10, pady=10, expand=True, fill="both")
-label.pack(pady=(0,0))
-button_org.pack(pady=(10,0))
-button_bg.pack(pady=5)
+label.pack(pady=(0,5))
+button_change.pack(pady=(0,10))
+button_org.pack(pady=(0,10))
+button_bg.pack(pady=(0,10))
 button_upd.pack(pady=(0,10))
 
 # ==============================
@@ -567,13 +592,12 @@ button_upd.pack(pady=(0,10))
 # ==============================
 
 if __name__ == "__main__":
-    # Check for updates on startup
     check_for_updates()
     
     if run_background:
         try:
             observer = Observer()
-            observer.schedule(DownloadsHandler(), DOWNLOAD_PATH, recursive=False)
+            observer.schedule(DownloadsHandler(), TARGET_PATH, recursive=False)
             observer.start()
         except Exception as e:
             log_txt(f"Error: Could not start observer on launch: {e}")
