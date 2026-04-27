@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "File Organizer"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.2.1"
 #define MyAppPublisher "TR4IS"
 #define MyAppURL "https://github.com/tr4is/fileorganizer"
 #define MyAppExeName "FileOrganizer.exe"

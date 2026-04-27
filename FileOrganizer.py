@@ -21,7 +21,7 @@ import sys
 # 📁 Windows File Organizer
 # ==============================
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 UPDATE_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/version.json"
 ICON_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/FileOrganizer.ico"
 FONT_URL = "https://raw.githubusercontent.com/tr4is/fileorganizer/main/docs/JetBrainsMono-Regular.ttf"
@@ -269,27 +269,42 @@ def safe_discard(path):
         currently_moving.discard(os.path.abspath(path))
     threading.Timer(1.0, _remove).start()
 
-def wait_for_complete(file_path, timeout=30):
-    last_size = -1
-    for _ in range(timeout * 2):
-        try:
-            size = os.path.getsize(file_path)
-        except FileNotFoundError:
+def is_file_ready(file_path):
+    """
+    Non-blocking check to see if a file is completely downloaded and unlocked.
+    Handles both large files and 0-byte files safely.
+    """
+    try:
+        # If the file was moved or deleted before we could check, abort.
+        if not os.path.exists(file_path):
             return False
-        except PermissionError:
-            time.sleep(1)
-            continue
-        if size == last_size and size > 0:
-            return True
-        last_size = size
-        time.sleep(0.5)
-    return False
+            
+        # The ultimate check on Windows: Can we get a write lock?
+        # Browsers and download managers lock the file while actively downloading.
+        with open(file_path, 'a'):
+            pass
+            
+        return True
+        
+    except PermissionError:
+        # The file is currently locked (actively downloading or being scanned)
+        return False
+    except OSError:
+        # Catch-all for other low-level Windows file access errors
+        return False
+
+# Global dictionary to track retries and prevent infinite loops on stuck files
+retry_tracker = {}
 
 def organize():
-    global organize_running, TARGET_PATH
+    global organize_running, TARGET_PATH, retry_tracker
+    
+    # Prevent multiple threads from organizing at the exact same time
     if organize_running:
         return
     organize_running = True
+    
+    files_deferred = False  # Tracks if we skipped any files and need a wake-up call
 
     def _clear_ui():
         try:
@@ -302,7 +317,7 @@ def organize():
 
     root.after(0, _clear_ui)
 
-    # Ensure folders exist
+    # Ensure target folders exist
     for folder in FILE_TYPES.keys():
         folder_path = os.path.join(TARGET_PATH, folder)
         if not os.path.exists(folder_path):
@@ -314,7 +329,6 @@ def organize():
                 organize_running = False
                 return
 
-    # Process items
     try:
         items = os.listdir(TARGET_PATH)
     except Exception as e:
@@ -325,9 +339,11 @@ def organize():
     for item in items:
         path = os.path.join(TARGET_PATH, item)
 
+        # Ignore the target folders themselves
         if item.lower() in FILE_TYPES:
             continue
 
+        # Handle moving directories to 'random'
         if os.path.isdir(path):
             dest = os.path.join(TARGET_PATH, 'random', item)
             currently_moving.add(os.path.abspath(dest))
@@ -340,13 +356,26 @@ def organize():
             continue
 
         _, ext = os.path.splitext(item.lower())
+        
+        # Ignore known temporary browser extensions
         if ext in TEMP_EXTENSIONS:
             continue
 
-        if not wait_for_complete(path):
-            log(f"[!] Skipping incomplete file: {item}")
+        # == THE NON-BLOCKING CHECK ==
+        if not is_file_ready(path):
+            # Track retries to avoid an infinite loop if a file is permanently locked (e.g., left open in another app)
+            retry_tracker[item] = retry_tracker.get(item, 0) + 1
+            
+            # If we've retried for less than ~1 hour (720 loops * 5 seconds), schedule a wake-up call
+            if retry_tracker[item] < 720:
+                files_deferred = True
             continue
+            
+        # If the file is ready, clean it out of the retry tracker
+        if item in retry_tracker:
+            del retry_tracker[item]
 
+        # Process and move the ready file
         moved = False
         for folder, exts in FILE_TYPES.items():
             if ext in exts:
@@ -371,9 +400,15 @@ def organize():
                 log_txt(f"Error: Failed to move {item}: {e}")
             safe_discard(os.path.abspath(dest))
 
-    log(f"✅ Done organizing {TARGET_PATH}!")
+    # Release the lock so the script can be triggered again
     organize_running = False
 
+    # == THE WAKE-UP CALL ==
+    if files_deferred:
+        # File(s) were locked. Wait 5 seconds, then fire the organize button logic again in the background.
+        threading.Timer(5.0, button_organize).start()
+    else:
+        log(f"✅ Done organizing {TARGET_PATH}!")
 # ==============================
 # 👀 Watchdog
 # ==============================
