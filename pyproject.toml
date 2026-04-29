@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fileorganizer"
+version = "1.2.1"
+description = "Windows desktop app that organizes files into category folders."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENCE" }
+authors = [
+  { name = "TR4IS" }
+]
+dependencies = [
+  "customtkinter==5.2.2",
+  "packaging>=24,<27",
+  "pillow<=10.4.0",
+  "pystray",
+  "requests",
+  "watchdog",
+]
+
+[project.scripts]
+fileorganizer = "fileorganizer.main:main"
+
+[tool.setuptools]
+packages = ["fileorganizer"]
