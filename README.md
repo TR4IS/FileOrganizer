@@ -1,4 +1,4 @@
-![icon](FileOrganizer.ico)
+![icon](docs/FileOrganizer.ico)
 
 
 # 🧹 File Organizer (Python)
