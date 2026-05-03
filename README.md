@@ -57,7 +57,25 @@ The script:
 
   - Windows OS
 
-  - ~~Python 3.x~~   - no need for python to be installed yay!
+  - Python 3.x   - no need for python to be installed for the exe
+
+  - pyhton library
+  ```
+  certifi
+  charset-normalizer
+  customtkinter
+  darkdetect
+  idna
+  packaging
+  pillow
+  pystray
+  python-xlib
+  requests
+  six
+  urllib3
+  watchdog
+  ```
+
 
 ---
 
