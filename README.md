@@ -16,8 +16,8 @@ A simple and effective app that automatically organizes your Windows **Downloads
   - 📄 PDFs (`.pdf`)
   - 🎧 Audio files (`.mp3`, `.wav`, `.ogg`, etc.)
   - 💿 OS images (`.iso`, `.img`)
-  - 🧧 Gifs (`.iso`, `.img`)
-  - 🔤 Fonts (`.iso`, `.img`)
+  - 🧧 Gifs (`.gif`)
+  - 🔤 Fonts (`.otf`, `.ttf`)
   - 🧪 Random/unknown files
 - Safe, simple, readable code
 
