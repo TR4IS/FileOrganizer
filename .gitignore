@@ -1,26 +1,31 @@
-# Virtual environment (Already in your file, keep it)
+# Virtual environment
 venv/
 ENV/
 env/
 
-# Python cache (Already in your file, keep it)
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Distribution / Build folders (New based on your sidebar)
+# Distribution / build folders
 build/
 dist/
 local_bin/
+*.egg-info/
 
-# PyInstaller spec file (New based on your sidebar)
+# PyInstaller
 *.spec
 
-# Environment variables (Already in your file, keep it)
+# Test / coverage output
+.pytest_cache/
+.coverage
+
+# Environment variables
 .env
 
-# VS Code settings (Already in your file, keep it)
+# Editor settings
 .vscode/
 
 # OS generated files
