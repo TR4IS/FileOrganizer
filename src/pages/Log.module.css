@@ -1,0 +1,21 @@
+.page { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.title { font-size: 16px; font-weight: 700; }
+.subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.clearBtn {
+  padding: 7px 12px; border-radius: 8px; background: transparent;
+  color: #E74C3C; border: 1px solid rgba(231,76,60,0.3); font-size: 12px;
+}
+.clearBtn:hover { background: rgba(231,76,60,0.08); }
+
+.logArea { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 4px; }
+
+.line { font-size: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.6; }
+
+.empty { color: var(--text-muted); font-size: 12px; text-align: center; margin-top: 40px; }
