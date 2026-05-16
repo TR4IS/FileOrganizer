@@ -4,7 +4,7 @@ import { DirectoryWatcher } from './watcher'
 import {
   getConfig, setConfig, getRules, setRules,
   getStats, getLogs, clearLogs,
-  appendLog, incrementStats, recordActivity, getActivity,
+  appendLog, getActivity,
 } from './config'
 import type { AppConfig, Rule } from './types'
 
