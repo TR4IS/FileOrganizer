@@ -1,0 +1,43 @@
+appId: com.tr4is.fileorganizer
+productName: FileOrganizer
+copyright: Copyright © 2025 TR4IS
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - docs/FileOrganizer.ico
+  - docs/JetBrainsMono-Regular.ttf
+
+win:
+  icon: docs/FileOrganizer.ico
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: docs/FileOrganizer.ico
+  uninstallerIcon: docs/FileOrganizer.ico
+
+mac:
+  icon: docs/FileOrganizer.icns
+  target:
+    - target: dmg
+    - target: zip
+
+linux:
+  icon: docs/FileOrganizer.png
+  target:
+    - target: AppImage
+      arch: [x64]
+
+publish:
+  provider: github
+  owner: TR4IS
+  repo: FileOrganizer
+
+afterSign: false
