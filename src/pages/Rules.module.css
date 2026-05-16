@@ -1,0 +1,66 @@
+.page { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.title { font-size: 16px; font-weight: 700; }
+.subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.presetRow { display: flex; gap: 8px; align-items: center; }
+
+.select {
+  background: var(--bg-surface); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 10px; font-size: 12px; cursor: pointer;
+}
+
+.btnGhost {
+  padding: 7px 12px; border-radius: 8px;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border); font-size: 12px;
+}
+.btnGhost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.content { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+.table { width: 100%; border-collapse: collapse; }
+
+.table th {
+  text-align: left; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text-muted);
+  padding: 0 12px 10px; border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  font-size: 12px; color: var(--text-secondary);
+}
+
+.table td code {
+  color: var(--accent); background: var(--accent-muted);
+  padding: 2px 6px; border-radius: 4px; font-size: 11px;
+}
+
+.deleteBtn {
+  background: transparent; color: var(--text-muted);
+  border: none; font-size: 13px; padding: 2px 6px; border-radius: 4px;
+}
+.deleteBtn:hover { color: #E74C3C; background: rgba(231,76,60,0.1); }
+
+.addRow td { border-bottom: none; padding-top: 14px; }
+
+.input {
+  background: var(--bg-surface); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: 12px; width: 100%;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+
+.addBtn {
+  background: var(--accent); color: var(--accent-text);
+  border: none; border-radius: 6px; padding: 6px 12px;
+  font-size: 12px; font-weight: 700;
+}
+.addBtn:hover { background: var(--accent-hover); }
