@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileOrganizer — Dashboard Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a2e; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding: 30px 20px; color: #fff; }
+
+  h2 { color: #FFD700; font-size: 18px; margin-bottom: 6px; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 24px; }
+
+  /* App window frame */
+  .app-frame {
+    width: 860px;
+    max-width: 100%;
+    background: #0f0f0f;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+    border: 1px solid #222;
+  }
+
+  /* Title bar */
+  .titlebar {
+    background: #141414;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    border-bottom: 1px solid #1e1e1e;
+    user-select: none;
+  }
+  .titlebar-dots { display: flex; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #FF5F57; }
+  .dot-yellow { background: #FFBD2E; }
+  .dot-green { background: #28C840; }
+  .titlebar-title { flex: 1; text-align: center; font-size: 12px; color: #444; letter-spacing: 0.5px; }
+
+  /* App body */
+  .app-body {
+    display: flex;
+    height: 540px;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 64px;
+    background: #111;
+    border-right: 1px solid #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 4px;
+  }
+  .sidebar-logo {
+    width: 36px; height: 36px;
+    background: #FFD700;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .nav-item {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .nav-item.active { background: rgba(255,215,0,0.12); }
+  .nav-item:not(.active):hover { background: #1a1a1a; }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    width: 3px; height: 24px;
+    background: #FFD700;
+    border-radius: 0 3px 3px 0;
+  }
+  .sidebar-bottom { margin-top: auto; }
+
+  /* Main content */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: #111;
+    border-bottom: 1px solid #1e1e1e;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-left h3 { font-size: 16px; color: #fff; font-weight: 600; }
+  .topbar-left p { font-size: 11px; color: #555; margin-top: 1px; }
+  .topbar-right { display: flex; gap: 8px; align-items: center; }
+
+  .badge {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-watching { background: rgba(0,200,100,0.1); color: #00C864; border: 1px solid rgba(0,200,100,0.2); }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #00C864; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .btn {
+    padding: 7px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none;
+  }
+  .btn-primary { background: #FFD700; color: #000; }
+  .btn-primary:hover { background: #ffe033; }
+  .btn-ghost { background: transparent; color: #666; border: 1px solid #2a2a2a; }
+
+  /* Content area */
+  .content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Stat cards */
+  .stat-row { display: flex; gap: 12px; }
+  .stat-card {
+    flex: 1; background: #161616;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px; padding: 16px;
+  }
+  .stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+  .stat-sub { font-size: 11px; color: #444; margin-top: 4px; }
+  .stat-gold { color: #FFD700; }
+  .stat-blue { color: #00AEFF; }
+  .stat-white { color: #ccc; }
+
+  /* Folder bar */
+  .folder-bar {
+    background: #161616;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .folder-bar-left { display: flex; align-items: center; gap: 10px; }
+  .folder-icon { font-size: 18px; }
+  .folder-path { font-size: 12px; color: #888; font-family: monospace; }
+  .folder-path span { color: #FFD700; }
+
+  /* Bottom row */
+  .bottom-row { display: flex; gap: 12px; flex: 1; min-height: 0; }
+
+  /* Chart card */
+  .chart-card {
+    flex: 1; background: #161616;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px; padding: 16px;
+    display: flex; flex-direction: column;
+  }
+  .card-title { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+
+  .bar-chart { display: flex; gap: 8px; align-items: flex-end; flex: 1; }
+  .bar-group { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; }
+  .bar-label { font-size: 9px; color: #444; white-space: nowrap; }
+
+  /* Activity card */
+  .activity-card {
+    width: 240px; background: #161616;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px; padding: 16px;
+    display: flex; flex-direction: column;
+  }
+  .activity-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; }
+  .activity-item { display: flex; align-items: center; gap: 8px; }
+  .activity-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .activity-info { flex: 1; min-width: 0; }
+  .activity-name { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .activity-dest { font-size: 10px; color: #555; }
+  .activity-tag { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<h2>FileOrganizer — Dashboard Mockup</h2>
+<p class="subtitle">Gold theme · Sidebar layout · Click anything to explore (visual only)</p>
+
+<div class="app-frame">
+
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="titlebar-dots">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+    </div>
+    <div class="titlebar-title">FileOrganizer</div>
+  </div>
+
+  <div class="app-body">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">⚡</div>
+      <div class="nav-item active" title="Dashboard">📊</div>
+      <div class="nav-item" title="Rules">📋</div>
+      <div class="nav-item" title="Log">📄</div>
+      <div class="sidebar-bottom">
+        <div class="nav-item" title="Settings">⚙️</div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <h3>Dashboard</h3>
+          <p>Friday, May 16 · Last run 3 min ago</p>
+        </div>
+        <div class="topbar-right">
+          <div class="badge badge-watching">
+            <div class="badge-dot"></div>
+            Watching
+          </div>
+          <button class="btn btn-ghost">Stop</button>
+          <button class="btn btn-primary">⚡ Organize Now</button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+
+        <!-- Stats -->
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-label">Files Today</div>
+            <div class="stat-value stat-gold">48</div>
+            <div class="stat-sub">↑ 12 from yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Watching</div>
+            <div class="stat-value stat-blue" style="font-size:15px;padding-top:6px;">Downloads</div>
+            <div class="stat-sub" style="color:#00C864;">● Active — 2s debounce</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">All Time</div>
+            <div class="stat-value stat-white">1,247</div>
+            <div class="stat-sub">since Jan 2025</div>
+          </div>
+        </div>
+
+        <!-- Folder bar -->
+        <div class="folder-bar">
+          <div class="folder-bar-left">
+            <div class="folder-icon">📁</div>
+            <div class="folder-path"><span>C:\Users\Cracker\</span>Downloads</div>
+          </div>
+          <button class="btn btn-ghost" style="font-size:11px;">Change Folder</button>
+        </div>
+
+        <!-- Chart + Activity -->
+        <div class="bottom-row">
+          <div class="chart-card">
+            <div class="card-title">Category Breakdown — Today</div>
+            <div class="bar-chart">
+              <div class="bar-group">
+                <div class="bar" style="height:80%;background:#FFD700;"></div>
+                <div class="bar-label">image</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height:55%;background:#00AEFF;"></div>
+                <div class="bar-label">video</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height:40%;background:#9B59B6;"></div>
+                <div class="bar-label">zip</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height:28%;background:#E74C3C;"></div>
+                <div class="bar-label">exe</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height:20%;background:#2ECC71;"></div>
+                <div class="bar-label">pdf</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height:14%;background:#F39C12;"></div>
+                <div class="bar-label">sound</div>
+              </div>
+              <div class="bar-group">
+                <div class="bar" style="height:8%;background:#555;"></div>
+                <div class="bar-label">other</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="activity-card">
+            <div class="card-title">Recent Activity</div>
+            <div class="activity-list">
+
+              <div class="activity-item">
+                <div class="activity-icon" style="background:rgba(255,215,0,0.1);">🖼️</div>
+                <div class="activity-info">
+                  <div class="activity-name">screenshot_2025.png</div>
+                  <div class="activity-dest">→ image/</div>
+                </div>
+                <div class="activity-tag" style="background:rgba(255,215,0,0.1);color:#FFD700;">img</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon" style="background:rgba(231,76,60,0.1);">⚙️</div>
+                <div class="activity-info">
+                  <div class="activity-name">node_setup.exe</div>
+                  <div class="activity-dest">→ exe/</div>
+                </div>
+                <div class="activity-tag" style="background:rgba(231,76,60,0.1);color:#E74C3C;">exe</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon" style="background:rgba(155,89,182,0.1);">📦</div>
+                <div class="activity-info">
+                  <div class="activity-name">archive_backup.zip</div>
+                  <div class="activity-dest">→ zip/</div>
+                </div>
+                <div class="activity-tag" style="background:rgba(155,89,182,0.1);color:#9B59B6;">zip</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon" style="background:rgba(0,174,255,0.1);">🎬</div>
+                <div class="activity-info">
+                  <div class="activity-name">tutorial_react.mp4</div>
+                  <div class="activity-dest">→ video/</div>
+                </div>
+                <div class="activity-tag" style="background:rgba(0,174,255,0.1);color:#00AEFF;">vid</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon" style="background:rgba(46,204,113,0.1);">📄</div>
+                <div class="activity-info">
+                  <div class="activity-name">invoice_may.pdf</div>
+                  <div class="activity-dest">→ pdf/</div>
+                </div>
+                <div class="activity-tag" style="background:rgba(46,204,113,0.1);color:#2ECC71;">pdf</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon" style="background:rgba(255,215,0,0.1);">🖼️</div>
+                <div class="activity-info">
+                  <div class="activity-name">wallpaper_4k.jpg</div>
+                  <div class="activity-dest">→ image/</div>
+                </div>
+                <div class="activity-tag" style="background:rgba(255,215,0,0.1);color:#FFD700;">img</div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top:16px;font-size:12px;color:#444;">This is the Dashboard screen. The sidebar icons lead to Rules → Log → Settings.</p>
+
+</body>
+</html>
