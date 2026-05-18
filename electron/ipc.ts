@@ -4,7 +4,7 @@ import { DirectoryWatcher } from './watcher'
 import {
   getConfig, setConfig, getRules, setRules,
   getStats, getLogs, clearLogs,
-  appendLog, getActivity,
+  appendLog, getActivity, incrementStats, recordActivity,
 } from './config'
 import type { AppConfig, Rule } from './types'
 
@@ -20,6 +20,11 @@ export function registerIpcHandlers(
   function log(line: string): void {
     appendLog(line)
     emit('log', line)
+    const match = line.match(/^\[->] (.+) -> (.+)\/$/)
+    if (match) {
+      incrementStats(match[2])
+      recordActivity({ filename: match[1], folder: match[2], timestamp: Date.now() })
+    }
   }
 
   // Wire organizer logger to IPC
