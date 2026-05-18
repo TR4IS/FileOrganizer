@@ -1,4 +1,5 @@
 import React from 'react'
+import { useLang } from '../context/LangContext'
 import styles from './Sidebar.module.css'
 
 export type Page = 'dashboard' | 'rules' | 'log' | 'settings'
@@ -8,18 +9,20 @@ interface Props {
   onChange: (page: Page) => void
 }
 
-const ITEMS: { page: Page; label: string; title: string }[] = [
-  { page: 'dashboard', label: 'DASH', title: 'Dashboard' },
-  { page: 'rules',     label: 'RULES', title: 'Rules' },
-  { page: 'log',       label: 'LOG',  title: 'Log' },
-]
-
 export default function Sidebar({ current, onChange }: Props) {
+  const { t } = useLang()
+
+  const items: { page: Page; label: string; title: string }[] = [
+    { page: 'dashboard', label: t.navDash,  title: t.dashTitle },
+    { page: 'rules',     label: t.navRules, title: t.rulesTitle },
+    { page: 'log',       label: t.navLog,   title: t.logTitle },
+  ]
+
   return (
     <nav className={styles.sidebar}>
       <div className={styles.logo} title="FileOrganizer">F</div>
       <div className={styles.items}>
-        {ITEMS.map(({ page, label, title }) => (
+        {items.map(({ page, label, title }) => (
           <button
             key={page}
             className={`${styles.item} ${current === page ? styles.active : ''}`}
@@ -34,9 +37,9 @@ export default function Sidebar({ current, onChange }: Props) {
         <button
           className={`${styles.item} ${current === 'settings' ? styles.active : ''}`}
           onClick={() => onChange('settings')}
-          title="Settings"
+          title={t.settingsTitle}
         >
-          <span className={styles.label}>SET</span>
+          <span className={styles.label}>{t.navSet}</span>
         </button>
       </div>
     </nav>

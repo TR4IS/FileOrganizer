@@ -1,7 +1,7 @@
 .sidebar {
   width: 68px;
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border);
+  border-inline-end: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -50,12 +50,6 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
 .item:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
@@ -66,12 +60,22 @@
   color: var(--accent);
 }
 
+/* Use logical properties so indicator flips to the correct side in RTL */
 .item.active::before {
   content: '';
   position: absolute;
-  left: -1px;
+  inset-inline-start: -1px;
   width: 3px;
   height: 26px;
   background: var(--accent);
-  border-radius: 0 3px 3px 0;
+  border-start-start-radius: 0;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  border-end-start-radius: 0;
+}
+
+.label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }

@@ -16,14 +16,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 interface Props {
   data: Record<string, number>
+  noDataLabel?: string
 }
 
-export default function BarChart({ data }: Props) {
+export default function BarChart({ data, noDataLabel = 'No files organized today' }: Props) {
   const entries = Object.entries(data).sort((a, b) => b[1] - a[1])
   const max = Math.max(...entries.map(([, v]) => v), 1)
 
   if (entries.length === 0) {
-    return <div className={styles.empty}>No files organized today</div>
+    return <div className={styles.empty}>{noDataLabel}</div>
   }
 
   return (

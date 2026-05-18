@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { LangProvider } from './context/LangContext'
 import Sidebar, { type Page } from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Rules from './pages/Rules'
@@ -6,7 +7,7 @@ import Log from './pages/Log'
 import Settings from './pages/Settings'
 import styles from './App.module.css'
 
-export default function App() {
+function AppInner() {
   const [page, setPage] = useState<Page>('dashboard')
   const [theme, setTheme] = useState<'gold' | 'blue' | 'green'>('gold')
 
@@ -33,5 +34,13 @@ export default function App() {
         {page === 'settings'  && <Settings onThemeChange={handleThemeChange} currentTheme={theme} />}
       </main>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <LangProvider>
+      <AppInner />
+    </LangProvider>
   )
 }

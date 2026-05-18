@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import type { AppConfig } from '../types'
+import { useLang } from '../context/LangContext'
+import type { Lang } from '../i18n'
 import styles from './Settings.module.css'
 
 const VERSION = __APP_VERSION__
@@ -10,6 +12,7 @@ interface Props {
 }
 
 export default function Settings({ currentTheme, onThemeChange }: Props) {
+  const { t, lang, setLang } = useLang()
   const [config, setConfig] = useState<AppConfig | null>(null)
 
   useEffect(() => {
@@ -18,8 +21,7 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
 
   async function update(patch: Partial<AppConfig>) {
     if (!config) return
-    const updated = { ...config, ...patch }
-    setConfig(updated)
+    setConfig({ ...config, ...patch })
     await window.api.setConfig(patch)
   }
 
@@ -28,111 +30,124 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
     if (p && config) setConfig({ ...config, targetPath: p })
   }
 
-  if (!config) return <div className={styles.loading}>Loading…</div>
+  if (!config) return <div className={styles.loading}>{t.settingsTitle}…</div>
 
   const themes: { id: 'gold' | 'blue' | 'green'; label: string; color: string }[] = [
-    { id: 'gold',  label: 'Gold',          color: '#FFD700' },
-    { id: 'blue',  label: 'Electric Blue', color: '#3B82F6' },
-    { id: 'green', label: 'Emerald Green', color: '#10B981' },
+    { id: 'gold',  label: t.themeGold,  color: '#FFD700' },
+    { id: 'blue',  label: t.themeBlue,  color: '#3B82F6' },
+    { id: 'green', label: t.themeGreen, color: '#10B981' },
+  ]
+
+  const langs: { id: Lang; label: string }[] = [
+    { id: 'en', label: t.langEnglish },
+    { id: 'ar', label: t.langArabic },
   ]
 
   return (
     <div className={styles.page}>
       <div className={styles.topbar}>
-        <h1 className={styles.title}>Settings</h1>
+        <h1 className={styles.title}>{t.settingsTitle}</h1>
       </div>
 
       <div className={styles.content}>
 
+        {/* Language */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Folder</h2>
+          <h2 className={styles.sectionTitle}>{t.sectionLanguage}</h2>
           <div className={styles.row}>
-            <span className={styles.rowLabel}>Target folder</span>
-            <div className={styles.rowRight}>
-              <span className={styles.pathText} title={config.targetPath}>
-                {config.targetPath || '—'}
-              </span>
-              <button className={styles.btn} onClick={handleChangeFolder}>Change</button>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Appearance</h2>
-          <div className={styles.row}>
-            <span className={styles.rowLabel}>Theme</span>
+            <span className={styles.rowLabel}>{t.sectionLanguage}</span>
             <div className={styles.themeRow}>
-              {themes.map((t) => (
+              {langs.map((l) => (
                 <button
-                  key={t.id}
-                  className={`${styles.themeBtn} ${currentTheme === t.id ? styles.themeBtnActive : ''}`}
-                  style={{ '--t-color': t.color } as React.CSSProperties}
-                  onClick={() => { onThemeChange(t.id); update({ theme: t.id }) }}
+                  key={l.id}
+                  className={`${styles.themeBtn} ${lang === l.id ? styles.themeBtnActive : ''}`}
+                  onClick={() => setLang(l.id)}
                 >
-                  <span className={styles.themeDot} />
-                  {t.label}
+                  {l.label}
                 </button>
               ))}
             </div>
           </div>
         </section>
 
+        {/* Folder */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Behavior</h2>
-          <Toggle
-            label="Launch at system startup"
-            value={config.launchAtStartup}
-            onChange={(v) => update({ launchAtStartup: v })}
-          />
-          <Toggle
-            label="Auto-start watcher on launch"
-            value={config.autoStartWatcher}
-            onChange={(v) => update({ autoStartWatcher: v })}
-          />
+          <h2 className={styles.sectionTitle}>{t.sectionFolder}</h2>
           <div className={styles.row}>
-            <span className={styles.rowLabel}>Watcher debounce</span>
+            <span className={styles.rowLabel}>{t.targetFolder}</span>
             <div className={styles.rowRight}>
-              <input
-                type="number"
-                min={1}
-                max={30}
-                className={styles.numInput}
-                value={config.debounceSeconds}
-                onChange={(e) => update({ debounceSeconds: Number(e.target.value) })}
-              />
-              <span className={styles.unit}>seconds</span>
+              <span className={styles.pathText} title={config.targetPath}>
+                {config.targetPath || '—'}
+              </span>
+              <button className={styles.btn} onClick={handleChangeFolder}>{t.change}</button>
             </div>
           </div>
         </section>
 
+        {/* Appearance */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Updates</h2>
-          <Toggle
-            label="Auto-check for updates on startup"
-            value={config.autoCheckUpdates}
-            onChange={(v) => update({ autoCheckUpdates: v })}
-          />
+          <h2 className={styles.sectionTitle}>{t.sectionAppearance}</h2>
           <div className={styles.row}>
-            <span className={styles.rowLabel}>Current version</span>
+            <span className={styles.rowLabel}>{t.theme}</span>
+            <div className={styles.themeRow}>
+              {themes.map((th) => (
+                <button
+                  key={th.id}
+                  className={`${styles.themeBtn} ${currentTheme === th.id ? styles.themeBtnActive : ''}`}
+                  style={{ '--t-color': th.color } as React.CSSProperties}
+                  onClick={() => { onThemeChange(th.id); update({ theme: th.id }) }}
+                >
+                  <span className={styles.themeDot} />
+                  {th.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Behavior */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t.sectionBehavior}</h2>
+          <Toggle label={t.launchAtStartup} value={config.launchAtStartup} onChange={(v) => update({ launchAtStartup: v })} />
+          <Toggle label={t.autoStartWatcher} value={config.autoStartWatcher} onChange={(v) => update({ autoStartWatcher: v })} />
+          <div className={styles.row}>
+            <span className={styles.rowLabel}>{t.watcherDebounce}</span>
+            <div className={styles.rowRight}>
+              <input
+                type="number" min={1} max={30}
+                className={styles.numInput}
+                value={config.debounceSeconds}
+                onChange={(e) => update({ debounceSeconds: Number(e.target.value) })}
+              />
+              <span className={styles.unit}>{t.seconds}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Updates */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t.sectionUpdates}</h2>
+          <Toggle label={t.autoCheckUpdates} value={config.autoCheckUpdates} onChange={(v) => update({ autoCheckUpdates: v })} />
+          <div className={styles.row}>
+            <span className={styles.rowLabel}>{t.currentVersion}</span>
             <span className={styles.versionText}>v{VERSION}</span>
           </div>
           <div className={styles.row}>
             <span className={styles.rowLabel} />
-            <button className={styles.btn} onClick={() => window.api.checkForUpdates()}>
-              Check for Updates
-            </button>
+            <button className={styles.btn} onClick={() => window.api.checkForUpdates()}>{t.checkForUpdates}</button>
           </div>
         </section>
 
+        {/* About */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>About</h2>
+          <h2 className={styles.sectionTitle}>{t.sectionAbout}</h2>
           <div className={styles.aboutCard}>
             <div className={styles.aboutLogo}>F</div>
             <div className={styles.aboutInfo}>
               <div className={styles.aboutName}>FileOrganizer</div>
               <div className={styles.aboutVersion}>v{VERSION}</div>
               <div className={styles.aboutBuilt}>
-                Built by <strong>TR4IS</strong>
+                {t.builtBy} <strong>TR4IS</strong>
               </div>
               <a
                 className={styles.aboutLink}
@@ -144,7 +159,7 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
               >
                 github.com/TR4IS/FileOrganizer
               </a>
-              <div className={styles.aboutLicense}>MIT License</div>
+              <div className={styles.aboutLicense}>{t.license}</div>
             </div>
           </div>
         </section>

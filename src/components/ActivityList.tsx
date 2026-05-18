@@ -17,11 +17,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 interface Props {
   entries: ActivityEntry[]
+  noActivityLabel?: string
 }
 
-export default function ActivityList({ entries }: Props) {
+export default function ActivityList({ entries, noActivityLabel = 'No recent activity' }: Props) {
   if (entries.length === 0) {
-    return <div className={styles.empty}>No recent activity</div>
+    return <div className={styles.empty}>{noActivityLabel}</div>
   }
 
   return (

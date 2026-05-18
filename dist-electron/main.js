@@ -5298,7 +5298,8 @@ const DEFAULT_CONFIG = {
   debounceSeconds: 2,
   theme: "gold",
   autoCheckUpdates: true,
-  launchAtStartup: false
+  launchAtStartup: false,
+  lang: "en"
 };
 const PRESETS = {
   Default: [
@@ -19982,9 +19983,9 @@ function createWindow() {
       contextIsolation: true
     }
   });
+  require$$1.Menu.setApplicationMenu(null);
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
-    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path$p.join(__dirname, "../dist/index.html"));
   }

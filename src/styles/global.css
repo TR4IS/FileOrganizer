@@ -25,6 +25,11 @@ body {
   user-select: none;
 }
 
+/* Arabic: switch to a system font that supports Arabic */
+html[dir="rtl"] body {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+}
+
 button {
   cursor: pointer;
   border: none;

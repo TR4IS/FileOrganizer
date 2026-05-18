@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import type { Rule } from '../types'
 import { PRESET_NAMES } from '../../electron/presets'
+import { useLang } from '../context/LangContext'
 import styles from './Rules.module.css'
 
 export default function Rules() {
+  const { t } = useLang()
   const [rules, setRules] = useState<Rule[]>([])
   const [preset, setPreset] = useState('Default')
   const [newExt, setNewExt] = useState('')
@@ -19,7 +21,7 @@ export default function Rules() {
   }
 
   async function handleResetPreset() {
-    if (!confirm(`Reset to "${preset}" preset? This will replace all current rules.`)) return
+    if (!confirm(t.resetConfirm(preset))) return
     const { PRESETS } = await import('../../electron/presets')
     await saveRules(PRESETS[preset] ?? [])
   }
@@ -42,22 +44,16 @@ export default function Rules() {
     <div className={styles.page}>
       <div className={styles.topbar}>
         <div>
-          <h1 className={styles.title}>Rules</h1>
-          <p className={styles.subtitle}>Map file extensions to destination folders</p>
+          <h1 className={styles.title}>{t.rulesTitle}</h1>
+          <p className={styles.subtitle}>{t.rulesSubtitle}</p>
         </div>
         <div className={styles.presetRow}>
-          <select
-            className={styles.select}
-            value={preset}
-            onChange={(e) => setPreset(e.target.value)}
-          >
+          <select className={styles.select} value={preset} onChange={(e) => setPreset(e.target.value)}>
             {PRESET_NAMES.map((p) => (
               <option key={p} value={p}>{p}</option>
             ))}
           </select>
-          <button className={styles.btnGhost} onClick={handleResetPreset}>
-            Reset to Preset
-          </button>
+          <button className={styles.btnGhost} onClick={handleResetPreset}>{t.resetToPreset}</button>
         </div>
       </div>
 
@@ -65,8 +61,8 @@ export default function Rules() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Extension</th>
-              <th>Destination Folder</th>
+              <th>{t.extension}</th>
+              <th>{t.destFolder}</th>
               <th></th>
             </tr>
           </thead>
@@ -84,7 +80,7 @@ export default function Rules() {
               <td>
                 <input
                   className={styles.input}
-                  placeholder=".ext"
+                  placeholder={t.extPlaceholder}
                   value={newExt}
                   onChange={(e) => setNewExt(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -93,14 +89,14 @@ export default function Rules() {
               <td>
                 <input
                   className={styles.input}
-                  placeholder="folder-name"
+                  placeholder={t.folderPlaceholder}
                   value={newFolder}
                   onChange={(e) => setNewFolder(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                 />
               </td>
               <td>
-                <button className={styles.addBtn} onClick={handleAdd}>+ Add</button>
+                <button className={styles.addBtn} onClick={handleAdd}>{t.addRule}</button>
               </td>
             </tr>
           </tbody>

@@ -11,6 +11,7 @@ export interface AppConfig {
   theme: 'gold' | 'blue' | 'green'
   autoCheckUpdates: boolean
   launchAtStartup: boolean
+  lang: 'en' | 'ar'
 }
 
 export interface OrganizeResult {
@@ -41,4 +42,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   theme: 'gold',
   autoCheckUpdates: true,
   launchAtStartup: false,
+  lang: 'en',
 }
