@@ -62,8 +62,12 @@ app.whenReady().then(() => {
   registerIpcHandlers(() => mainWindow, organizer, watcher)
   setupUpdater(() => mainWindow)
 
-  if (config.autoStartWatcher && config.runInBackground) {
-    watcher.start(config.targetPath)
+  // Defer watcher auto-start until the renderer is fully loaded so IPC
+  // events aren't dropped on a page that hasn't mounted its listeners yet.
+  if (config.autoStartWatcher || config.runInBackground) {
+    mainWindow!.webContents.once('did-finish-load', () => {
+      watcher.start(config.targetPath)
+    })
   }
 
   mainWindow!.on('close', (e) => {
