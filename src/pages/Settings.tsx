@@ -127,7 +127,7 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>About</h2>
           <div className={styles.aboutCard}>
-            <div className={styles.aboutLogo}>⚡</div>
+            <div className={styles.aboutLogo}>F</div>
             <div className={styles.aboutInfo}>
               <div className={styles.aboutName}>FileOrganizer</div>
               <div className={styles.aboutVersion}>v{VERSION}</div>

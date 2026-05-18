@@ -90,7 +90,7 @@ export default function Dashboard() {
             {watching ? 'Stop' : 'Watch'}
           </button>
           <button className={styles.btnPrimary} onClick={handleOrganize} disabled={busy}>
-            {busy ? 'Running…' : '⚡ Organize Now'}
+            {busy ? 'Running…' : 'Organize Now'}
           </button>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function Dashboard() {
         </div>
 
         <div className={styles.folderBar}>
-          <span className={styles.folderIcon}>📁</span>
+          <span className={styles.folderIcon}>[dir]</span>
           <span className={styles.folderPath} title={config.targetPath}>
             {config.targetPath || 'No folder selected'}
           </span>

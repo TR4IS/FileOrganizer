@@ -8,25 +8,25 @@ interface Props {
   onChange: (page: Page) => void
 }
 
-const ITEMS: { page: Page; icon: string; title: string }[] = [
-  { page: 'dashboard', icon: '📊', title: 'Dashboard' },
-  { page: 'rules',     icon: '📋', title: 'Rules' },
-  { page: 'log',       icon: '📄', title: 'Log' },
+const ITEMS: { page: Page; label: string; title: string }[] = [
+  { page: 'dashboard', label: 'DASH', title: 'Dashboard' },
+  { page: 'rules',     label: 'RULES', title: 'Rules' },
+  { page: 'log',       label: 'LOG',  title: 'Log' },
 ]
 
 export default function Sidebar({ current, onChange }: Props) {
   return (
     <nav className={styles.sidebar}>
-      <div className={styles.logo} title="FileOrganizer">⚡</div>
+      <div className={styles.logo} title="FileOrganizer">F</div>
       <div className={styles.items}>
-        {ITEMS.map(({ page, icon, title }) => (
+        {ITEMS.map(({ page, label, title }) => (
           <button
             key={page}
             className={`${styles.item} ${current === page ? styles.active : ''}`}
             onClick={() => onChange(page)}
             title={title}
           >
-            {icon}
+            <span className={styles.label}>{label}</span>
           </button>
         ))}
       </div>
@@ -36,7 +36,7 @@ export default function Sidebar({ current, onChange }: Props) {
           onClick={() => onChange('settings')}
           title="Settings"
         >
-          ⚙️
+          <span className={styles.label}>SET</span>
         </button>
       </div>
     </nav>

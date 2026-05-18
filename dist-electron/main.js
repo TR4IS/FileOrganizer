@@ -19966,10 +19966,10 @@ function setupUpdater(getWindow) {
 let mainWindow = null;
 function createWindow() {
   mainWindow = new require$$1.BrowserWindow({
-    width: 900,
-    height: 620,
-    minWidth: 700,
-    minHeight: 500,
+    width: 1100,
+    height: 720,
+    minWidth: 860,
+    minHeight: 580,
     frame: true,
     backgroundColor: "#0f0f0f",
     icon: path$p.join(
