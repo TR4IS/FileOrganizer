@@ -43,7 +43,10 @@ app.whenReady().then(() => {
 
   const organizer = new Organizer(config.targetPath, rules, () => {})
   const watcher = new DirectoryWatcher(
-    () => organizer.organize(),
+    () => {
+      const result = organizer.organize()
+      mainWindow?.webContents.send('organize-complete', result)
+    },
     config.debounceSeconds * 1000,
   )
 

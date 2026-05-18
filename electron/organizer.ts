@@ -66,18 +66,8 @@ export class Organizer {
     }
 
     for (const entry of entries) {
-      // Skip category folders themselves
-      if (entry.isDirectory()) {
-        if (folderNames.has(entry.name)) continue
-        const dest = path.join(this.targetPath, 'random', entry.name)
-        if (moveItem(path.join(this.targetPath, entry.name), dest, this.logger)) {
-          movedDirectories++
-          this.logger(`[->] Moved folder: ${entry.name} -> random/`)
-        } else {
-          errors++
-        }
-        continue
-      }
+      // Skip all directories — this app only organizes files
+      if (entry.isDirectory()) continue
 
       const ext = path.extname(entry.name).toLowerCase()
       if (TEMP_EXTENSIONS.has(ext)) continue
