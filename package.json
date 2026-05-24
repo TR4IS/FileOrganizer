@@ -1,6 +1,6 @@
 {
   "name": "file-organizer",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Automatically organize your files by type",
   "main": "dist-electron/main.js",
   "author": "TR4IS",
