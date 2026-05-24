@@ -1,0 +1,94 @@
+.page { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.title { font-size: 18px; font-weight: 700; }
+.subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+.actions { display: flex; align-items: center; gap: 10px; }
+
+.badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+}
+.badgeActive {
+  background: var(--status-active-bg);
+  color: var(--status-active);
+  border: 1px solid var(--status-active);
+}
+.badgeIdle {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--status-active);
+  animation: pulse 2s infinite;
+}
+.dotIdle { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.btnPrimary {
+  padding: 9px 18px; border-radius: 8px;
+  background: var(--accent); color: var(--accent-text);
+  font-weight: 700; font-size: 14px;
+  transition: background 0.15s;
+}
+.btnPrimary:hover:not(:disabled) { background: var(--accent-hover); }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnGhost {
+  padding: 9px 14px; border-radius: 8px;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border); font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+.btnGhost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.content { flex: 1; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+
+.statRow { display: flex; gap: 14px; flex-shrink: 0; }
+
+.watchCard {
+  flex: 1; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+}
+.cardLabel { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.watchPath { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.watchStatus { font-size: 13px; margin-top: 4px; }
+
+.folderBar {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 18px; flex-shrink: 0;
+}
+.folderIcon { font-size: 18px; flex-shrink: 0; }
+.folderPath { flex: 1; font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.bottomRow { display: flex; gap: 14px; flex: 1; min-height: 0; }
+
+.chartCard {
+  flex: 1; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+  display: flex; flex-direction: column;
+}
+.chartArea { flex: 1; min-height: 0; }
+
+.activityCard {
+  width: 260px; background: var(--bg-surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+  display: flex; flex-direction: column; gap: 14px; overflow: hidden;
+}
+.cardTitle { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; flex-shrink: 0; }
