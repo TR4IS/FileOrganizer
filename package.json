@@ -8,8 +8,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
-    "build:dir": "tsc && vite build && electron-builder --dir",
+    "build": "tsc -p tsconfig.build.json && vite build && electron-builder",
+    "build:dir": "tsc -p tsconfig.build.json && vite build && electron-builder --dir",
     "test": "vitest run",
     "test:watch": "vitest"
   },
