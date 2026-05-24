@@ -66,8 +66,9 @@ export default function Dashboard() {
   const folderName = config.targetPath.split(/[/\\]/).pop() ?? config.targetPath
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const minutesAgo = lastRun ? Math.round((Date.now() - lastRun.getTime()) / 60000) : null
   const lastRunStr = lastRun
-    ? t.lastRun(Math.round((Date.now() - lastRun.getTime()) / 60000))
+    ? (minutesAgo === 0 ? t.justNow : t.lastRun(minutesAgo!))
     : t.notRunYet
 
   return (

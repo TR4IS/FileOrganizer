@@ -150,11 +150,11 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
               </button>
               {updateStatus && (
                 <span className={styles.updateMsg} data-type={updateStatus.type}>
-                  {updateStatus.type === 'available'    && `v${updateStatus.version} available — downloading…`}
-                  {updateStatus.type === 'not-available' && 'Already up to date'}
-                  {updateStatus.type === 'downloading'   && `Downloading… ${updateStatus.percent}%`}
-                  {updateStatus.type === 'downloaded'    && 'Downloaded — will install on exit'}
-                  {updateStatus.type === 'error'         && `Error: ${updateStatus.message}`}
+                  {updateStatus.type === 'available'     && t.updateAvailable(updateStatus.version)}
+                  {updateStatus.type === 'not-available' && t.updateNotAvailable}
+                  {updateStatus.type === 'downloading'   && t.updateDownloading(updateStatus.percent)}
+                  {updateStatus.type === 'downloaded'    && t.updateDownloaded}
+                  {updateStatus.type === 'error'         && t.updateError(updateStatus.message)}
                 </span>
               )}
             </div>

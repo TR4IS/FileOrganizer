@@ -1,11 +1,11 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import path from 'path'
 import { Organizer } from './organizer'
 import { DirectoryWatcher } from './watcher'
 import { registerIpcHandlers } from './ipc'
 import { AppTray } from './tray'
-import { setupUpdater } from './updater'
-import { getConfig, getRules } from './config'
+import { setupUpdater, triggerCheckForUpdates } from './updater'
+import { getConfig, getRules, checkDailyReset } from './config'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -38,24 +38,28 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  checkDailyReset()
+
   const config = getConfig()
   const rules = getRules()
 
   const organizer = new Organizer(config.targetPath, rules, () => {})
-  const watcher = new DirectoryWatcher(
-    () => {
-      const result = organizer.organize()
-      mainWindow?.webContents.send('organize-complete', result)
-    },
-    config.debounceSeconds * 1000,
-  )
+
+  // Shared trigger used by both watcher and tray — emits organize-complete so
+  // the dashboard refreshes stats after every auto or manual run.
+  const triggerOrganize = () => {
+    const result = organizer.organize()
+    mainWindow?.webContents.send('organize-complete', result)
+  }
+
+  const watcher = new DirectoryWatcher(triggerOrganize, config.debounceSeconds * 1000)
 
   createWindow()
 
   const tray = new AppTray(
     () => mainWindow,
-    () => organizer.organize(),
-    () => ipcMain.emit('check-for-updates'),
+    triggerOrganize,              // was: () => organizer.organize() — missed dashboard update
+    triggerCheckForUpdates,       // was: ipcMain.emit() — didn't trigger ipcMain.handle handlers
   )
   tray.create(config.runInBackground, path.basename(config.targetPath))
 

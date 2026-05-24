@@ -16,6 +16,13 @@ export interface Strings {
   stoppedStatus: string
   notRunYet: string
   lastRun: (m: number) => string
+  justNow: string
+  // Update status
+  updateAvailable: (v: string) => string
+  updateNotAvailable: string
+  updateDownloading: (pct: number) => string
+  updateDownloaded: string
+  updateError: (msg: string) => string
   changeFolder: string
   noFolderSelected: string
   categoryToday: string
@@ -85,6 +92,12 @@ const en: Strings = {
   stoppedStatus: '○ Stopped',
   notRunYet: 'Not run yet',
   lastRun: (m) => `Last run ${m} min ago`,
+  justNow: 'Just now',
+  updateAvailable: (v) => `v${v} available — downloading…`,
+  updateNotAvailable: 'Already up to date',
+  updateDownloading: (pct) => `Downloading… ${pct}%`,
+  updateDownloaded: 'Downloaded — will install on exit',
+  updateError: (msg) => `Error: ${msg}`,
   changeFolder: 'Change Folder',
   noFolderSelected: 'No folder selected',
   categoryToday: 'Category Breakdown — Today',
@@ -154,6 +167,12 @@ const ar: Strings = {
   stoppedStatus: '○ متوقف',
   notRunYet: 'لم يعمل بعد',
   lastRun: (m) => `آخر تشغيل منذ ${m} دقيقة`,
+  justNow: 'الآن',
+  updateAvailable: (v) => `الإصدار ${v} متاح — جارٍ التنزيل…`,
+  updateNotAvailable: 'أنت تستخدم أحدث إصدار',
+  updateDownloading: (pct) => `جارٍ التنزيل… ${pct}%`,
+  updateDownloaded: 'تم التنزيل — سيتم التثبيت عند الإغلاق',
+  updateError: (msg) => `خطأ: ${msg}`,
   changeFolder: 'تغيير المجلد',
   noFolderSelected: 'لم يتم تحديد مجلد',
   categoryToday: 'تصنيف ملفات اليوم',

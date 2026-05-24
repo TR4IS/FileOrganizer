@@ -1,5 +1,6 @@
 import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, ipcMain } from 'electron'
+import { getConfig } from './config'
 
 export function setupUpdater(getWindow: () => BrowserWindow | null): void {
   autoUpdater.autoDownload = true          // download as soon as update is found
@@ -22,7 +23,6 @@ export function setupUpdater(getWindow: () => BrowserWindow | null): void {
 
   autoUpdater.on('update-downloaded', () => {
     emit('update-status', { type: 'downloaded' })
-    // Install immediately on next quit
     autoUpdater.quitAndInstall(false, true)
   })
 
@@ -40,8 +40,15 @@ export function setupUpdater(getWindow: () => BrowserWindow | null): void {
     }
   })
 
-  // Silent background check on startup
+  // Silent background check on startup — respects the autoCheckUpdates setting
   setTimeout(() => {
-    autoUpdater.checkForUpdates().catch(() => { /* not packaged / offline */ })
+    if (getConfig().autoCheckUpdates) {
+      autoUpdater.checkForUpdates().catch(() => { /* not packaged / offline */ })
+    }
   }, 3000)
+}
+
+/** Call this directly (e.g. from tray) to trigger a manual update check. */
+export function triggerCheckForUpdates(): void {
+  autoUpdater.checkForUpdates().catch(() => { /* ignore in dev / offline */ })
 }

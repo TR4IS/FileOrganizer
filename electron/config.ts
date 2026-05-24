@@ -63,6 +63,15 @@ export function resetDailyStats(): void {
   writeJson(STATS_PATH, { ...stats, today: 0, byCategory: {} })
 }
 
+/** Call once on startup — resets today/byCategory if calendar day has changed. */
+export function checkDailyReset(): void {
+  const today = new Date().toISOString().slice(0, 10)
+  const stats = getStats()
+  if (stats.lastReset !== today) {
+    writeJson(STATS_PATH, { ...stats, today: 0, byCategory: {}, lastReset: today })
+  }
+}
+
 export function appendLog(line: string): void {
   fs.mkdirSync(DATA_DIR, { recursive: true })
   fs.appendFileSync(LOG_PATH, line + '\n', 'utf8')
