@@ -13,6 +13,7 @@ files:
 
 win:
   icon: docs/FileOrganizer.ico
+  artifactName: FileOrganizerSetup.exe
   target:
     - target: nsis
       arch: [x64]
