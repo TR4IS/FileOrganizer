@@ -1,108 +1,66 @@
-![icon](docs/FileOrganizer.ico)
+# FileOrganizer
 
-
-# 🧹 File Organizer (Python)
-
-A simple and effective app that automatically organizes your Windows **Downloads** folder into categorized subfolders like `zip`, `image`, `video`, `pdf`, `sound`, `os`, and `random`.
+A fast, modern desktop app that automatically organizes your files into categorized subfolders — built with Electron, React, and TypeScript.
 
 ---
 
-## 🚀 Features
+## Features
 
-- Automatically creates folders for:
-  - 📁 Zip files (`.zip`, `.rar`)
-  - 🖼️ Images (`.jpg`, `.png`, `.gif`, etc.)
-  - 🎞️ Videos (`.mp4`, `.mkv`, `.avi`, etc.)
-  - 📄 PDFs (`.pdf`)
-  - 🎧 Audio files (`.mp3`, `.wav`, `.ogg`, etc.)
-  - 💿 OS images (`.iso`, `.img`)
-  - 🧧 Gifs (`.gif`)
-  - 🔤 Fonts (`.otf`, `.ttf`)
-  - 🧪 Random/unknown files
-- Safe, simple, readable code
+- **Dashboard** — live stats showing files organized today, all-time count, breakdown by category, and a recent activity feed
+- **Background watcher** — monitors your folder and organizes new files automatically as they arrive
+- **Manual organize** — run a one-click organize at any time
+- **Real-time log** — color-coded live event stream so you can see exactly what moved where
+- **Rules editor** — fully customizable extension → folder mapping with preset packs to get started
+- **Themes** — Gold, Blue, and Green accent themes
+- **Arabic language** — full RTL layout, switchable in Settings
+- **Auto-updater** — checks for new releases on startup and installs them silently
+- **System tray** — minimize to tray and keep the watcher running in the background
 
 ---
 
-## 📉 Performance
+## Download
 
-- My Specs:
-  - i7-8700 3.20GHz
-  - 32G RAM
-  - Nivida RTX 4060ti
-    
-- Script Performance:
-  - RAM Usage => 32.1 MB
-  - Disk Usage (Idle) => 0 MB/S
-  - Disk Usage (Working) => it depends on the content but usually not above 0.90 MB/s
- 
-The data presented are based on my specific use case and may vary from your own experience
+Grab the latest installer from [Releases](https://github.com/TR4IS/FileOrganizer/releases/latest).
+
+**Windows** — `FileOrganizer Setup x.x.x.exe` (NSIS installer, x64)
 
 ---
 
-## 📂 How It Works
+## How It Works
 
-The script:
-1. Scans your `Downloads` folder.
-2. Identifies each file’s extension.
-3. Moves the file to its corresponding category folder.
-4. Creates folders if they don’t exist.
-
----
-
-## ▶️ How to Run
-
-1. Download the latest exe from [here](https://github.com/tr4is/windows-downloads-file-organizer/releases/) and run it!
+1. Open the app and select the folder you want to organize (e.g. Downloads).
+2. Files are sorted by extension into subfolders: `image`, `video`, `pdf`, `sound`, `zip`, `exe`, `font`, `gif`, `os`, `random`.
+3. Enable the **watcher** to organize files automatically as they arrive, or click **Organize Now** to run it manually.
+4. All activity is logged in real time. Stats and charts update after every run.
 
 ---
 
-## 🛠 Requirements
+## Customizing Rules
 
-  - Windows OS
-
-  - Python 3.x   - no need for python to be installed for the exe
-
-  - pyhton library
-  ```
-  certifi
-  charset-normalizer
-  customtkinter
-  darkdetect
-  idna
-  packaging
-  pillow
-  pystray
-  python-xlib
-  requests
-  six
-  urllib3
-  watchdog
-  ```
-
+Go to the **Rules** page to add, remove, or reset extension → folder mappings. You can also reset to one of the built-in presets (Default, Media, Dev, Documents) at any time.
 
 ---
 
-## 🙋‍♂️ Author
+## Requirements
 
-  - TR4IS
-
-  - GitHub: @tr4is
+- Windows 10/11 x64
 
 ---
 
-## ⚠️ Disclaimer
-  This app organizes your files by moving them to new folders.  
-  If other programs are using those files, they may appear to "disappear" because their paths have changed.  
-  Make sure to update any shortcuts or software that relies on the original file locations.
+## Performance
 
+- RAM: ~50 MB idle
+- Disk: near zero at idle; only active during organize runs
+- CPU: negligible — event-driven, no polling
 
 ---
 
-## 📝 To-Do / Ideas
+## Disclaimer
 
-- ~~Build a simple GUI~~ ✔️  
-- ~~Listening for events (toggle)~~ ✔️  
-- Add config file support (custom categories) ⏳ (in progress)  
-- ~~Minimize to system tray 🖥️~~ ✔️
-- Add a redo fucntion (Restores changes)
+FileOrganizer moves files by changing their location on disk. If other programs reference those files by their original path (shortcuts, recent files lists, etc.), they may lose track of them after a move.
 
+---
 
+## Author
+
+**TR4IS** — [github.com/TR4IS](https://github.com/TR4IS)
