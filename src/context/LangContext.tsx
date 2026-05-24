@@ -23,7 +23,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     window.api.getConfig().then((cfg) => {
-      const l = ((cfg as Record<string, unknown>).lang as Lang) ?? 'en'
+      const l: Lang = cfg.lang ?? 'en'
       setLangState(l)
       applyDir(l)
     })
@@ -32,7 +32,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   function setLang(l: Lang) {
     setLangState(l)
     applyDir(l)
-    window.api.setConfig({ lang: l } as never)
+    window.api.setConfig({ lang: l })
   }
 
   return (
