@@ -8,26 +8,47 @@ export class AppTray {
     private getWindow: () => BrowserWindow | null,
     private onOrganize: () => void,
     private onCheckUpdates: () => void,
+    private log: (line: string) => void = console.error,
   ) {}
 
   create(watching: boolean, folderName: string): void {
-    if (this.tray) return
+    if (this.tray) {
+      this.update(watching, folderName)
+      return
+    }
 
-    const iconPath = path.join(
-      app.isPackaged ? process.resourcesPath : 'docs',
-      'FileOrganizer.ico',
-    )
-    const raw = nativeImage.createFromPath(iconPath)
-    // Windows tray requires a 16×16 image — resize so it isn't invisible
-    const icon = raw.isEmpty() ? nativeImage.createEmpty() : raw.resize({ width: 16, height: 16 })
-    this.tray = new Tray(icon)
-    this.tray.setToolTip(
-      watching
-        ? `FileOrganizer — Watching: ${folderName}`
-        : 'FileOrganizer — Idle',
-    )
-    this.updateMenu()
-    this.tray.on('double-click', () => this.showWindow())
+    // app.getAppPath() resolves correctly in both dev and packaged (asar) builds
+    const iconPath = path.join(app.getAppPath(), 'docs', 'FileOrganizer.ico')
+    this.log(`[*] Loading tray icon from: ${iconPath}`)
+
+    let icon: Electron.NativeImage
+    try {
+      const raw = nativeImage.createFromPath(iconPath)
+      if (raw.isEmpty()) {
+        this.log('[!] Tray icon loaded but is empty — file may be missing or corrupt')
+        icon = nativeImage.createEmpty()
+      } else {
+        icon = raw.resize({ width: 16, height: 16 })
+        this.log('[*] Tray icon loaded OK')
+      }
+    } catch (err) {
+      this.log(`[!] Failed to load tray icon: ${err}`)
+      icon = nativeImage.createEmpty()
+    }
+
+    try {
+      this.tray = new Tray(icon)
+      this.tray.setToolTip(
+        watching
+          ? `FileOrganizer — Watching: ${folderName}`
+          : 'FileOrganizer — Idle',
+      )
+      this.updateMenu()
+      this.tray.on('double-click', () => this.showWindow())
+      this.log('[*] Tray created successfully')
+    } catch (err) {
+      this.log(`[!] Failed to create tray: ${err}`)
+    }
   }
 
   update(watching: boolean, folderName: string): void {
