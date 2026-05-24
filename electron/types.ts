@@ -26,6 +26,7 @@ export interface Stats {
   today: number
   allTime: number
   byCategory: Record<string, number>  // folder name → count today
+  lastReset?: string                  // ISO date 'YYYY-MM-DD' of last daily reset
 }
 
 export interface ActivityEntry {
