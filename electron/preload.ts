@@ -69,7 +69,20 @@ const api = {
     ipcRenderer.on('update-available', handler)
     return () => ipcRenderer.removeListener('update-available', handler)
   },
+
+  onUpdateStatus: (cb: (status: UpdateStatus) => void): (() => void) => {
+    const handler = (_: Electron.IpcRendererEvent, status: UpdateStatus) => cb(status)
+    ipcRenderer.on('update-status', handler)
+    return () => ipcRenderer.removeListener('update-status', handler)
+  },
 }
+
+export type UpdateStatus =
+  | { type: 'available'; version: string }
+  | { type: 'not-available' }
+  | { type: 'downloading'; percent: number }
+  | { type: 'downloaded' }
+  | { type: 'error'; message: string }
 
 contextBridge.exposeInMainWorld('api', api)
 
