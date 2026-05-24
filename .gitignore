@@ -32,3 +32,13 @@ local_bin/
 .DS_Store
 Thumbs.db
 Output/
+
+# Node / Electron
+node_modules/
+dist-electron/
+dist/
+release/
+*.tsbuildinfo
+
+# Vite
+.vite/
