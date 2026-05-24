@@ -42,3 +42,18 @@ release/
 
 # Vite
 .vite/
+
+# Tool internals — never commit
+.claude/
+.superpowers/
+docs/superpowers/
+
+# Old Python app artifacts
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.coverage
