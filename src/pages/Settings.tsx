@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import type { AppConfig } from '../types'
+import type { UpdateStatus } from '../../electron/preload'
 import { useLang } from '../context/LangContext'
 import type { Lang } from '../i18n'
 import styles from './Settings.module.css'
@@ -14,9 +15,12 @@ interface Props {
 export default function Settings({ currentTheme, onThemeChange }: Props) {
   const { t, lang, setLang } = useLang()
   const [config, setConfig] = useState<AppConfig | null>(null)
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
 
   useEffect(() => {
     window.api.getConfig().then(setConfig)
+    const cleanup = window.api.onUpdateStatus(setUpdateStatus)
+    return cleanup
   }, [])
 
   async function update(patch: Partial<AppConfig>) {
@@ -134,7 +138,26 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
           </div>
           <div className={styles.row}>
             <span className={styles.rowLabel} />
-            <button className={styles.btn} onClick={() => window.api.checkForUpdates()}>{t.checkForUpdates}</button>
+            <div className={styles.rowRight}>
+              <button
+                className={styles.btn}
+                disabled={updateStatus?.type === 'downloading'}
+                onClick={() => { setUpdateStatus(null); window.api.checkForUpdates() }}
+              >
+                {updateStatus?.type === 'downloading'
+                  ? `${t.checkForUpdates}… ${updateStatus.percent}%`
+                  : t.checkForUpdates}
+              </button>
+              {updateStatus && (
+                <span className={styles.updateMsg} data-type={updateStatus.type}>
+                  {updateStatus.type === 'available'    && `v${updateStatus.version} available — downloading…`}
+                  {updateStatus.type === 'not-available' && 'Already up to date'}
+                  {updateStatus.type === 'downloading'   && `Downloading… ${updateStatus.percent}%`}
+                  {updateStatus.type === 'downloaded'    && 'Downloaded — will install on exit'}
+                  {updateStatus.type === 'error'         && `Error: ${updateStatus.message}`}
+                </span>
+              )}
+            </div>
           </div>
         </section>
 

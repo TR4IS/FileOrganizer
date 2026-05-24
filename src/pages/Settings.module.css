@@ -85,3 +85,13 @@
 .aboutLink { font-size: 12px; color: var(--accent); text-decoration: none; }
 .aboutLink:hover { text-decoration: underline; }
 .aboutLicense { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.updateMsg {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.updateMsg[data-type="not-available"] { color: var(--status-active); }
+.updateMsg[data-type="available"]     { color: var(--accent); }
+.updateMsg[data-type="downloading"]   { color: var(--accent); }
+.updateMsg[data-type="downloaded"]    { color: var(--status-active); }
+.updateMsg[data-type="error"]         { color: var(--color-error, #E74C3C); }
