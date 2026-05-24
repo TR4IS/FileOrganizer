@@ -1,3 +1,5 @@
+
+![icon](docs/FileOrganizer.ico)
 # FileOrganizer
 
 A fast, modern desktop app that automatically organizes your files into categorized subfolders — built with Electron, React, and TypeScript.
