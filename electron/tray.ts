@@ -17,8 +17,10 @@ export class AppTray {
       app.isPackaged ? process.resourcesPath : 'docs',
       'FileOrganizer.ico',
     )
-    const icon = nativeImage.createFromPath(iconPath)
-    this.tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon)
+    const raw = nativeImage.createFromPath(iconPath)
+    // Windows tray requires a 16×16 image — resize so it isn't invisible
+    const icon = raw.isEmpty() ? nativeImage.createEmpty() : raw.resize({ width: 16, height: 16 })
+    this.tray = new Tray(icon)
     this.tray.setToolTip(
       watching
         ? `FileOrganizer — Watching: ${folderName}`
