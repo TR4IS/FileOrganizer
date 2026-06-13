@@ -1,4 +1,4 @@
-
+![Downloads](https://img.shields.io/github/downloads/TR4IS/FileOrganizer/total?style=flat-square)
 ![icon](docs/FileOrganizer.ico)
 # FileOrganizer
 
