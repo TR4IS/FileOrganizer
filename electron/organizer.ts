@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import type { Rule, OrganizeResult } from './types'
+import type { RuleSet, OrganizeResult } from './types'
 
 const TEMP_EXTENSIONS = new Set([
   '.crdownload', '.part', '.part1', '.part2', '.part3',
@@ -9,39 +9,62 @@ const TEMP_EXTENSIONS = new Set([
 
 export class Organizer {
   private extensionMap: Map<string, string>
+  private prefixRules: Array<{ prefix: string; folder: string }>
+  private folderNameMap: Map<string, string>
+  private moveUnmatchedFolders: boolean
+  private unmatchedFolderDest: string
   private retryTracker = new Map<string, number>()
   private readonly retryLimit: number
 
   constructor(
     private targetPath: string,
-    rules: Rule[],
+    ruleSet: RuleSet,
     private logger: (line: string) => void,
     retryLimit = 720,
+    moveUnmatchedFolders = false,
+    unmatchedFolderDest = 'random',
   ) {
     this.retryLimit = retryLimit
-    this.extensionMap = buildExtensionMap(rules)
+    this.moveUnmatchedFolders = moveUnmatchedFolders
+    this.unmatchedFolderDest = unmatchedFolderDest
+    this.extensionMap = buildExtensionMap(ruleSet.fileRules)
+    this.prefixRules  = [...ruleSet.prefixRules]
+    this.folderNameMap = buildFolderNameMap(ruleSet.folderRules)
   }
 
-  updateRules(rules: Rule[]): void {
-    this.extensionMap = buildExtensionMap(rules)
+  updateRules(ruleSet: RuleSet): void {
+    this.extensionMap  = buildExtensionMap(ruleSet.fileRules)
+    this.prefixRules   = [...ruleSet.prefixRules]
+    this.folderNameMap = buildFolderNameMap(ruleSet.folderRules)
   }
 
   updateTargetPath(p: string): void {
     this.targetPath = p
   }
 
+  updateUnmatchedConfig(moveUnmatchedFolders: boolean, unmatchedFolderDest: string): void {
+    this.moveUnmatchedFolders = moveUnmatchedFolders
+    this.unmatchedFolderDest  = unmatchedFolderDest
+  }
+
   organize(): OrganizeResult {
-    let createdFolders = 0
-    let movedFiles = 0
-    let movedDirectories = 0
-    let deferredFiles = 0
-    let errors = 0
+    let createdFolders    = 0
+    let movedFiles        = 0
+    let movedDirectories  = 0
+    let deferredFiles     = 0
+    let errors            = 0
 
-    const folderNames = new Set(this.extensionMap.values())
-    folderNames.add('random')
+    // All destination folder names (used to create dirs upfront and as protected set)
+    const allDestinations = new Set<string>([
+      ...this.extensionMap.values(),
+      ...this.prefixRules.map(r => r.folder),
+      ...this.folderNameMap.values(),
+      'random',
+    ])
+    if (this.moveUnmatchedFolders) allDestinations.add(this.unmatchedFolderDest)
 
-    // Ensure category folders exist
-    for (const folder of folderNames) {
+    // Ensure all destination folders exist
+    for (const folder of allDestinations) {
       const folderPath = path.join(this.targetPath, folder)
       if (!fs.existsSync(folderPath)) {
         try {
@@ -56,7 +79,7 @@ export class Organizer {
       }
     }
 
-    // List target directory
+    // Read target directory
     let entries: fs.Dirent[]
     try {
       entries = fs.readdirSync(this.targetPath, { withFileTypes: true })
@@ -65,8 +88,8 @@ export class Organizer {
       return { createdFolders, movedFiles, movedDirectories, deferredFiles, errors: errors + 1 }
     }
 
+    // Pass 1 + 2: files (extension match, then prefix match)
     for (const entry of entries) {
-      // Skip all directories — this app only organizes files
       if (entry.isDirectory()) continue
 
       const ext = path.extname(entry.name).toLowerCase()
@@ -81,14 +104,45 @@ export class Organizer {
       }
 
       this.retryTracker.delete(entry.name)
-      const folder = this.extensionMap.get(ext) ?? 'random'
-      const dest = path.join(this.targetPath, folder, entry.name)
 
-      if (moveItem(filePath, dest, this.logger)) {
+      // Extension match first, then prefix, then random
+      const extFolder    = this.extensionMap.get(ext)
+      const prefixFolder = extFolder == null
+        ? this.prefixRules.find(r => entry.name.startsWith(r.prefix))?.folder
+        : undefined
+      const destFolder = extFolder ?? prefixFolder ?? 'random'
+
+      const dest = path.join(this.targetPath, destFolder, entry.name)
+      if (moveFile(filePath, dest, this.logger)) {
         movedFiles++
-        this.logger(`[->] ${entry.name} -> ${folder}/`)
+        this.logger(`[->] ${entry.name} -> ${destFolder}/`)
       } else {
         errors++
+      }
+    }
+
+    // Pass 3: directories
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      if (allDestinations.has(entry.name)) continue  // skip protected (output) folders
+
+      const matchedFolder = this.folderNameMap.get(entry.name)
+      if (matchedFolder) {
+        const dest = path.join(this.targetPath, matchedFolder, entry.name)
+        if (moveDir(path.join(this.targetPath, entry.name), dest, this.logger)) {
+          movedDirectories++
+          this.logger(`[->] ${entry.name}/ -> ${matchedFolder}/`)
+        } else {
+          errors++
+        }
+      } else if (this.moveUnmatchedFolders) {
+        const dest = path.join(this.targetPath, this.unmatchedFolderDest, entry.name)
+        if (moveDir(path.join(this.targetPath, entry.name), dest, this.logger)) {
+          movedDirectories++
+          this.logger(`[->] ${entry.name}/ -> ${this.unmatchedFolderDest}/`)
+        } else {
+          errors++
+        }
       }
     }
 
@@ -100,7 +154,7 @@ export class Organizer {
   }
 }
 
-function buildExtensionMap(rules: Rule[]): Map<string, string> {
+function buildExtensionMap(rules: RuleSet['fileRules']): Map<string, string> {
   const map = new Map<string, string>()
   for (const rule of rules) {
     const ext = rule.extension.toLowerCase()
@@ -109,9 +163,16 @@ function buildExtensionMap(rules: Rule[]): Map<string, string> {
   return map
 }
 
+function buildFolderNameMap(rules: RuleSet['folderRules']): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const rule of rules) {
+    if (!map.has(rule.name)) map.set(rule.name, rule.folder)
+  }
+  return map
+}
+
 function isFileReady(filePath: string): boolean {
   try {
-    // Use 'r+' — open for read+write, never creates, fails if locked
     const fd = fs.openSync(filePath, 'r+')
     fs.closeSync(fd)
     return true
@@ -120,12 +181,11 @@ function isFileReady(filePath: string): boolean {
   }
 }
 
-function moveItem(src: string, dest: string, logger: (l: string) => void): boolean {
+function moveFile(src: string, dest: string, logger: (l: string) => void): boolean {
   try {
     fs.renameSync(src, dest)
     return true
   } catch (err: unknown) {
-    // EXDEV = cross-device move; fall back to copy+delete
     if (isExdevError(err)) {
       try {
         fs.copyFileSync(src, dest)
@@ -137,6 +197,20 @@ function moveItem(src: string, dest: string, logger: (l: string) => void): boole
       }
     }
     logger(`[!] Failed to move ${path.basename(src)}: ${err}`)
+    return false
+  }
+}
+
+function moveDir(src: string, dest: string, logger: (l: string) => void): boolean {
+  if (fs.existsSync(dest)) {
+    logger(`[!] Destination already exists, skipping folder: ${path.basename(dest)}`)
+    return false
+  }
+  try {
+    fs.renameSync(src, dest)
+    return true
+  } catch (err) {
+    logger(`[!] Failed to move folder ${path.basename(src)}: ${err}`)
     return false
   }
 }
