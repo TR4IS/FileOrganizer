@@ -3,21 +3,25 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import { Organizer } from '../electron/organizer'
-import type { Rule } from '../electron/types'
+import type { RuleSet } from '../electron/types'
 
-const RULES: Rule[] = [
-  { extension: '.png',  folder: 'image' },
-  { extension: '.jpg',  folder: 'image' },
-  { extension: '.mp4',  folder: 'video' },
-  { extension: '.pdf',  folder: 'pdf' },
-  { extension: '.zip',  folder: 'zip' },
-]
+const BASE_RULESET: RuleSet = {
+  fileRules: [
+    { extension: '.png',  folder: 'image' },
+    { extension: '.jpg',  folder: 'image' },
+    { extension: '.mp4',  folder: 'video' },
+    { extension: '.pdf',  folder: 'pdf' },
+    { extension: '.zip',  folder: 'zip' },
+  ],
+  prefixRules: [],
+  folderRules: [],
+}
 
 function makeTempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'fo-test-'))
 }
 
-describe('Organizer', () => {
+describe('Organizer — file rules (extension matching)', () => {
   let targetDir: string
   let logs: string[]
   let org: Organizer
@@ -25,7 +29,7 @@ describe('Organizer', () => {
   beforeEach(() => {
     targetDir = makeTempDir()
     logs = []
-    org = new Organizer(targetDir, RULES, (line) => logs.push(line))
+    org = new Organizer(targetDir, BASE_RULESET, (line) => logs.push(line))
   })
 
   afterEach(() => {
@@ -73,19 +77,141 @@ describe('Organizer', () => {
     expect(result.movedFiles).toBe(0)
   })
 
-  it('does not create ghost files for missing files', () => {
-    // isFileReady must NOT create a file that does not exist
+  it('does not create ghost files', () => {
     const ghost = path.join(targetDir, 'ghost.png')
-    // ghost does not exist — organizer should not create it
     org.organize()
     expect(fs.existsSync(ghost)).toBe(false)
   })
 
   it('handles cross-device move gracefully', () => {
     fs.writeFileSync(path.join(targetDir, 'test.png'), 'x')
-    const imageDir = path.join(targetDir, 'image')
-    fs.mkdirSync(imageDir)
-    // Even if move fails it should not throw — just verify it runs without throw
     expect(() => org.organize()).not.toThrow()
+  })
+})
+
+describe('Organizer — prefix rules', () => {
+  let targetDir: string
+  let logs: string[]
+
+  beforeEach(() => {
+    targetDir = makeTempDir()
+    logs = []
+  })
+
+  afterEach(() => {
+    fs.rmSync(targetDir, { recursive: true, force: true })
+  })
+
+  it('moves a file matching a prefix rule into the mapped folder', () => {
+    const ruleSet: RuleSet = {
+      fileRules: [],
+      prefixRules: [{ prefix: 'screenshot_', folder: 'screenshots' }],
+      folderRules: [],
+    }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l))
+    fs.writeFileSync(path.join(targetDir, 'screenshot_2024.png'), 'x')
+    const result = org.organize()
+    expect(result.movedFiles).toBe(1)
+    expect(fs.existsSync(path.join(targetDir, 'screenshots', 'screenshot_2024.png'))).toBe(true)
+  })
+
+  it('extension match takes priority over prefix match', () => {
+    const ruleSet: RuleSet = {
+      fileRules:   [{ extension: '.png', folder: 'image' }],
+      prefixRules: [{ prefix: 'screenshot_', folder: 'screenshots' }],
+      folderRules: [],
+    }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l))
+    fs.writeFileSync(path.join(targetDir, 'screenshot_2024.png'), 'x')
+    const result = org.organize()
+    expect(result.movedFiles).toBe(1)
+    // extension wins: goes to image/, not screenshots/
+    expect(fs.existsSync(path.join(targetDir, 'image', 'screenshot_2024.png'))).toBe(true)
+  })
+
+  it('files not matching any prefix go to random/', () => {
+    const ruleSet: RuleSet = {
+      fileRules:   [],
+      prefixRules: [{ prefix: 'screenshot_', folder: 'screenshots' }],
+      folderRules: [],
+    }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l))
+    fs.writeFileSync(path.join(targetDir, 'report_q4.pdf'), 'x')
+    const result = org.organize()
+    expect(result.movedFiles).toBe(1)
+    expect(fs.existsSync(path.join(targetDir, 'random', 'report_q4.pdf'))).toBe(true)
+  })
+
+  it('single-character prefix works', () => {
+    const ruleSet: RuleSet = {
+      fileRules:   [],
+      prefixRules: [{ prefix: '_', folder: 'misc' }],
+      folderRules: [],
+    }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l))
+    fs.writeFileSync(path.join(targetDir, '_draft.txt'), 'x')
+    const result = org.organize()
+    expect(result.movedFiles).toBe(1)
+    expect(fs.existsSync(path.join(targetDir, 'misc', '_draft.txt'))).toBe(true)
+  })
+})
+
+describe('Organizer — folder-name rules', () => {
+  let targetDir: string
+  let logs: string[]
+
+  beforeEach(() => {
+    targetDir = makeTempDir()
+    logs = []
+  })
+
+  afterEach(() => {
+    fs.rmSync(targetDir, { recursive: true, force: true })
+  })
+
+  it('moves a subfolder matching a folderRule into the mapped destination', () => {
+    const ruleSet: RuleSet = {
+      fileRules:   [],
+      prefixRules: [],
+      folderRules: [{ name: 'screenshots', folder: 'image' }],
+    }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l))
+    fs.mkdirSync(path.join(targetDir, 'screenshots'))
+    fs.writeFileSync(path.join(targetDir, 'screenshots', 'pic.png'), 'x')
+    const result = org.organize()
+    expect(result.movedDirectories).toBe(1)
+    expect(fs.existsSync(path.join(targetDir, 'image', 'screenshots', 'pic.png'))).toBe(true)
+  })
+
+  it('does not move category folders (protected set)', () => {
+    const ruleSet: RuleSet = {
+      fileRules:   [{ extension: '.png', folder: 'image' }],
+      prefixRules: [],
+      folderRules: [],
+    }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l))
+    fs.mkdirSync(path.join(targetDir, 'image'))
+    fs.writeFileSync(path.join(targetDir, 'image', 'existing.png'), 'x')
+    const result = org.organize()
+    expect(result.movedDirectories).toBe(0)
+    expect(fs.existsSync(path.join(targetDir, 'image', 'existing.png'))).toBe(true)
+  })
+
+  it('skips unmatched subfolders when moveUnmatchedFolders is false', () => {
+    const ruleSet: RuleSet = { fileRules: [], prefixRules: [], folderRules: [] }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l), 720, false, 'random')
+    fs.mkdirSync(path.join(targetDir, 'old-project'))
+    const result = org.organize()
+    expect(result.movedDirectories).toBe(0)
+    expect(fs.existsSync(path.join(targetDir, 'old-project'))).toBe(true)
+  })
+
+  it('moves unmatched subfolders to unmatchedFolderDest when enabled', () => {
+    const ruleSet: RuleSet = { fileRules: [], prefixRules: [], folderRules: [] }
+    const org = new Organizer(targetDir, ruleSet, (l) => logs.push(l), 720, true, 'misc')
+    fs.mkdirSync(path.join(targetDir, 'old-project'))
+    const result = org.organize()
+    expect(result.movedDirectories).toBe(1)
+    expect(fs.existsSync(path.join(targetDir, 'misc', 'old-project'))).toBe(true)
   })
 })
