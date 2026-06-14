@@ -44,6 +44,19 @@ export interface Strings {
   extPlaceholder: string
   folderPlaceholder: string
   resetConfirm: (p: string) => string
+  // Rules — new
+  extensionsSectionLabel: string
+  prefixesSectionLabel: string
+  folderNamesSectionLabel: string
+  addExtension: string
+  addPrefix: string
+  addFolderName: string
+  newDestFolder: string
+  newDestFolderPlaceholder: string
+  deleteGroupConfirm: (folder: string) => string
+  // Settings — new
+  moveUnmatchedFolders: string
+  unmatchedFolderDest: string
   // Log
   logTitle: string
   entries: (n: number) => string
@@ -111,7 +124,7 @@ const en: Strings = {
   allTimeCount: (n) => `${n} all time`,
 
   rulesTitle: 'Rules',
-  rulesSubtitle: 'Map file extensions to destination folders',
+  rulesSubtitle: 'Map files and folders to destinations',
   extension: 'Extension',
   destFolder: 'Destination Folder',
   resetToPreset: 'Reset to Preset',
@@ -119,6 +132,17 @@ const en: Strings = {
   extPlaceholder: '.ext',
   folderPlaceholder: 'folder-name',
   resetConfirm: (p) => `Reset to "${p}" preset? This will replace all current rules.`,
+  extensionsSectionLabel: 'Extensions',
+  prefixesSectionLabel: 'Filename Starts With',
+  folderNamesSectionLabel: 'Subfolders Named',
+  addExtension: '+ add extension',
+  addPrefix: '+ add prefix',
+  addFolderName: '+ add folder',
+  newDestFolder: '+ New Destination Folder',
+  newDestFolderPlaceholder: 'folder-name',
+  deleteGroupConfirm: (folder) => `Delete "${folder}" and all its rules?`,
+  moveUnmatchedFolders: 'Move unmatched folders',
+  unmatchedFolderDest: 'Destination folder',
 
   logTitle: 'Log',
   entries: (n) => `${n} entries`,
@@ -186,7 +210,7 @@ const ar: Strings = {
   allTimeCount: (n) => `${n} إجمالاً`,
 
   rulesTitle: 'القواعد',
-  rulesSubtitle: 'ربط امتدادات الملفات بمجلدات الوجهة',
+  rulesSubtitle: 'ربط الملفات والمجلدات بمجلدات الوجهة',
   extension: 'الامتداد',
   destFolder: 'مجلد الوجهة',
   resetToPreset: 'إعادة الضبط',
@@ -194,6 +218,17 @@ const ar: Strings = {
   extPlaceholder: '.امتداد',
   folderPlaceholder: 'اسم-المجلد',
   resetConfirm: (p) => `إعادة الضبط إلى "${p}"؟ سيستبدل جميع القواعد الحالية.`,
+  extensionsSectionLabel: 'الامتدادات',
+  prefixesSectionLabel: 'اسم الملف يبدأ بـ',
+  folderNamesSectionLabel: 'المجلدات المسماة',
+  addExtension: '+ إضافة امتداد',
+  addPrefix: '+ إضافة بادئة',
+  addFolderName: '+ إضافة مجلد',
+  newDestFolder: '+ مجلد وجهة جديد',
+  newDestFolderPlaceholder: 'اسم-المجلد',
+  deleteGroupConfirm: (folder) => `حذف "${folder}" وجميع قواعده؟`,
+  moveUnmatchedFolders: 'نقل المجلدات غير المطابقة',
+  unmatchedFolderDest: 'مجلد الوجهة',
 
   logTitle: 'السجل',
   entries: (n) => `${n} إدخال`,
