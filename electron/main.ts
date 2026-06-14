@@ -53,10 +53,17 @@ app.whenReady().then(() => {
 
   const config = getConfig()
   log(`[*] Config loaded — target: "${config.targetPath}"`)
-  const rules = getRules()
-  log(`[*] Rules loaded — ${rules.length} rules`)
+  const ruleSet = getRules()
+  log(`[*] Rules loaded — ${ruleSet.fileRules.length} file rules, ${ruleSet.prefixRules.length} prefix rules, ${ruleSet.folderRules.length} folder rules`)
 
-  const organizer = new Organizer(config.targetPath, rules, log)
+  const organizer = new Organizer(
+    config.targetPath,
+    ruleSet,
+    log,
+    720,
+    config.moveUnmatchedFolders,
+    config.unmatchedFolderDest,
+  )
 
   // Shared trigger used by both watcher and tray
   const triggerOrganize = () => {

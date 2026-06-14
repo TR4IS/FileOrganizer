@@ -1,8 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AppConfig, Rule, OrganizeResult, Stats, ActivityEntry } from './types'
+import type { AppConfig, RuleSet, OrganizeResult, Stats, ActivityEntry } from './types'
 
 const api = {
-  // Commands
   organize: (): Promise<OrganizeResult> =>
     ipcRenderer.invoke('organize'),
 
@@ -12,11 +11,11 @@ const api = {
   setConfig: (patch: Partial<AppConfig>): Promise<void> =>
     ipcRenderer.invoke('set-config', patch),
 
-  getRules: (): Promise<Rule[]> =>
+  getRules: (): Promise<RuleSet> =>
     ipcRenderer.invoke('get-rules'),
 
-  setRules: (rules: Rule[]): Promise<void> =>
-    ipcRenderer.invoke('set-rules', rules),
+  setRules: (ruleSet: RuleSet): Promise<void> =>
+    ipcRenderer.invoke('set-rules', ruleSet),
 
   getStats: (): Promise<Stats & { activity: ActivityEntry[] }> =>
     ipcRenderer.invoke('get-stats'),
@@ -45,7 +44,6 @@ const api = {
   openExternal: (url: string): Promise<void> =>
     ipcRenderer.invoke('open-external', url),
 
-  // Events — return cleanup function
   onLog: (cb: (line: string) => void): (() => void) => {
     const handler = (_: Electron.IpcRendererEvent, line: string) => cb(line)
     ipcRenderer.on('log', handler)

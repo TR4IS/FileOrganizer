@@ -6,7 +6,7 @@ import {
   getStats, getLogs, clearLogs,
   appendLog, getActivity, incrementStats, recordActivity,
 } from './config'
-import type { AppConfig, Rule } from './types'
+import type { AppConfig, RuleSet } from './types'
 
 export function registerIpcHandlers(
   getWindow: () => BrowserWindow | null,
@@ -27,7 +27,6 @@ export function registerIpcHandlers(
     }
   }
 
-  // Wire organizer logger to IPC
   ;(organizer as unknown as { logger: (line: string) => void }).logger = log
 
   ipcMain.handle('organize', async () => {
@@ -46,13 +45,17 @@ export function registerIpcHandlers(
     if ('launchAtStartup' in patch) {
       app.setLoginItemSettings({ openAtLogin: patch.launchAtStartup ?? false })
     }
+    if ('moveUnmatchedFolders' in patch || 'unmatchedFolderDest' in patch) {
+      const cfg = getConfig()
+      organizer.updateUnmatchedConfig(cfg.moveUnmatchedFolders, cfg.unmatchedFolderDest)
+    }
   })
 
   ipcMain.handle('get-rules', () => getRules())
 
-  ipcMain.handle('set-rules', (_e, rules: Rule[]) => {
-    setRules(rules)
-    organizer.updateRules(rules)
+  ipcMain.handle('set-rules', (_e, ruleSet: RuleSet) => {
+    setRules(ruleSet)
+    organizer.updateRules(ruleSet)
   })
 
   ipcMain.handle('get-stats', () => ({
