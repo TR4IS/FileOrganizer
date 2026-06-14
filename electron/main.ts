@@ -7,6 +7,12 @@ import { AppTray } from './tray'
 import { setupUpdater, triggerCheckForUpdates } from './updater'
 import { getConfig, getRules, checkDailyReset, appendLog } from './config'
 
+// Prevent multiple instances — second launch focuses the existing window instead
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
+if (!gotSingleInstanceLock) {
+  app.quit()
+}
+
 let mainWindow: BrowserWindow | null = null
 let isQuitting = false  // tracks app.quit() so close handler doesn't hide on real quit
 
@@ -46,6 +52,15 @@ function createWindow(): void {
     log(`[!] Renderer failed to load: ${code} ${desc}`)
   })
 }
+
+// When a second launch is attempted, show and focus the existing window
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+  }
+})
 
 app.whenReady().then(() => {
   log('[*] App starting')
