@@ -1,5 +1,12 @@
-![Downloads](https://img.shields.io/github/downloads/TR4IS/FileOrganizer/total?style=flat-square)
+
 ![icon](docs/FileOrganizer.ico)
+
+[![Downloads](https://img.shields.io/github/downloads/TR4IS/FileOrganizer/total?style=flat-square&logo=github&label=Downloads)](https://github.com/TR4IS/FileOrganizer/releases)
+[![Latest](https://img.shields.io/github/v/release/TR4IS/FileOrganizer?style=flat-square&label=Latest)](https://github.com/TR4IS/FileOrganizer/releases/latest)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENCE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078d4?style=flat-square&logo=windows)](https://github.com/TR4IS/FileOrganizer/releases/latest)
+[![Built with Electron](https://img.shields.io/badge/Built%20with-Electron-47848f?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org)
+[![Stars](https://img.shields.io/github/stars/TR4IS/FileOrganizer?style=flat-square&logo=github&color=FFD700)](https://github.com/TR4IS/FileOrganizer/stargazers)
 # FileOrganizer
 
 A fast, modern desktop app that automatically organizes your files into categorized subfolders — built with Electron, React, and TypeScript.
