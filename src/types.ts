@@ -1,6 +1,6 @@
-// Re-export all types for the renderer — never import from electron/ in src/
 export type {
   Rule,
+  RuleSet,
   AppConfig,
   OrganizeResult,
   Stats,

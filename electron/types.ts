@@ -1,7 +1,10 @@
-export interface Rule {
-  extension: string   // e.g. ".png" — always lowercase, includes dot
-  folder: string      // e.g. "image" — destination subfolder name
+export interface RuleSet {
+  fileRules:   Array<{ extension: string; folder: string }>
+  prefixRules: Array<{ prefix: string;   folder: string }>
+  folderRules: Array<{ name: string;     folder: string }>
 }
+
+export type Rule = RuleSet['fileRules'][number]
 
 export interface AppConfig {
   targetPath: string
@@ -12,6 +15,8 @@ export interface AppConfig {
   autoCheckUpdates: boolean
   launchAtStartup: boolean
   lang: 'en' | 'ar'
+  moveUnmatchedFolders: boolean
+  unmatchedFolderDest: string
 }
 
 export interface OrganizeResult {
@@ -25,14 +30,14 @@ export interface OrganizeResult {
 export interface Stats {
   today: number
   allTime: number
-  byCategory: Record<string, number>  // folder name → count today
-  lastReset?: string                  // ISO date 'YYYY-MM-DD' of last daily reset
+  byCategory: Record<string, number>
+  lastReset?: string
 }
 
 export interface ActivityEntry {
   filename: string
-  folder: string      // destination folder name
-  timestamp: number   // Date.now()
+  folder: string
+  timestamp: number
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -44,4 +49,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   autoCheckUpdates: true,
   launchAtStartup: false,
   lang: 'en',
+  moveUnmatchedFolders: false,
+  unmatchedFolderDest: 'random',
 }
