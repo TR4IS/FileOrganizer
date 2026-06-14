@@ -114,6 +114,25 @@ export default function Settings({ currentTheme, onThemeChange }: Props) {
           <h2 className={styles.sectionTitle}>{t.sectionBehavior}</h2>
           <Toggle label={t.launchAtStartup} value={config.launchAtStartup} onChange={(v) => update({ launchAtStartup: v })} />
           <Toggle label={t.autoStartWatcher} value={config.autoStartWatcher} onChange={(v) => update({ autoStartWatcher: v })} />
+          <Toggle
+            label={t.moveUnmatchedFolders}
+            value={config.moveUnmatchedFolders}
+            onChange={(v) => update({ moveUnmatchedFolders: v })}
+          />
+          {config.moveUnmatchedFolders && (
+            <div className={styles.row}>
+              <span className={styles.rowLabel}>{t.unmatchedFolderDest}</span>
+              <input
+                className={styles.textInput}
+                value={config.unmatchedFolderDest}
+                onChange={(e) => update({ unmatchedFolderDest: e.target.value })}
+                onBlur={(e) => {
+                  const val = e.target.value.trim()
+                  if (!val) update({ unmatchedFolderDest: 'random' })
+                }}
+              />
+            </div>
+          )}
           <div className={styles.row}>
             <span className={styles.rowLabel}>{t.watcherDebounce}</span>
             <div className={styles.rowRight}>

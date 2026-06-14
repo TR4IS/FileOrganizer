@@ -95,3 +95,11 @@
 .updateMsg[data-type="downloading"]   { color: var(--accent); }
 .updateMsg[data-type="downloaded"]    { color: var(--status-active); }
 .updateMsg[data-type="error"]         { color: var(--color-error, #E74C3C); }
+
+.textInput {
+  background: var(--bg-base); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: 13px; font-family: inherit;
+  min-width: 120px;
+}
+.textInput:focus { outline: none; border-color: var(--accent); }
