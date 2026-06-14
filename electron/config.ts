@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import type { AppConfig, Rule, Stats, ActivityEntry } from './types'
+import type { AppConfig, Rule, RuleSet, Stats, ActivityEntry } from './types'
 import { DEFAULT_CONFIG } from './types'
 import { PRESETS } from './presets'
 
@@ -38,12 +38,19 @@ export function setConfig(patch: Partial<AppConfig>): void {
   writeJson(CONFIG_PATH, { ...current, ...patch })
 }
 
-export function getRules(): Rule[] {
-  return readJson<Rule[]>(RULES_PATH, PRESETS.Default)
+const DEFAULT_RULESET: RuleSet = { fileRules: [], prefixRules: [], folderRules: [] }
+
+export function getRules(): RuleSet {
+  const raw = readJson<RuleSet | Rule[]>(RULES_PATH, PRESETS.Default)
+  // Migration: if stored as plain Rule[], promote to RuleSet
+  if (Array.isArray(raw)) {
+    return { fileRules: raw, prefixRules: [], folderRules: [] }
+  }
+  return { ...DEFAULT_RULESET, ...raw }
 }
 
-export function setRules(rules: Rule[]): void {
-  writeJson(RULES_PATH, rules)
+export function setRules(ruleSet: RuleSet): void {
+  writeJson(RULES_PATH, ruleSet)
 }
 
 export function getStats(): Stats {
@@ -63,7 +70,6 @@ export function resetDailyStats(): void {
   writeJson(STATS_PATH, { ...stats, today: 0, byCategory: {} })
 }
 
-/** Call once on startup — resets today/byCategory if calendar day has changed. */
 export function checkDailyReset(): void {
   const today = new Date().toISOString().slice(0, 10)
   const stats = getStats()
@@ -91,7 +97,6 @@ export function clearLogs(): void {
   fs.writeFileSync(LOG_PATH, '', 'utf8')
 }
 
-// Activity stored in memory only — last 50 entries
 let activityLog: ActivityEntry[] = []
 
 export function recordActivity(entry: ActivityEntry): void {
